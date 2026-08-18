@@ -3,6 +3,7 @@ import '../widgets/side_navbar.dart';
 import '../widgets/top_navbar.dart';
 import 'dashboard_screen.dart';
 import 'invitation_codes_screen.dart';
+import 'users_management_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -49,6 +50,8 @@ class _MainLayoutState extends State<MainLayout> {
         return const DashboardScreen();
       case 1:
         return const InvitationCodesScreen();
+      case 2:
+        return const UsersManagementScreen();
       default:
         return const Center(child: Text('Screen not implemented yet', style: TextStyle(color: Colors.white)));
     }
