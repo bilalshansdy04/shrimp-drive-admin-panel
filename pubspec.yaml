@@ -1,0 +1,48 @@
+name: shrimp_drive_admin
+description: "Admin Panel Desktop for Shrimp Drive Management"
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.3.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # --- [ State Management ] ---
+  flutter_riverpod: ^2.5.1
+  riverpod_annotation: ^2.3.5
+
+  # --- [ Networking & API ] ---
+  dio: ^5.4.3+1
+
+  # --- [ Keamanan & Storage ] ---
+  flutter_secure_storage: ^9.2.2
+
+  # --- [ Desktop Window Management ] ---
+  window_manager: ^0.3.9
+
+  # --- [ Data Presentation & Table ] ---
+  data_table_2: ^2.5.10
+  intl: any
+
+  # --- [ Form & Validation ] ---
+  flutter_form_builder: any
+  form_builder_validators: any
+
+  # --- [ UI & Icons ] ---
+  lucide_icons: ^0.257.0
+  shadcn_ui: ^0.12.0 # Opsional: jika ingin komponen UI shadcn siap pakai
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+  build_runner: ^2.4.9
+  riverpod_generator: ^2.4.0
+
+flutter:
+  uses-material-design: true
