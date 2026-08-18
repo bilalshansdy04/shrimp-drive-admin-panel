@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
+import 'screens/dashboard_screen.dart';
+import 'theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,15 +39,8 @@ class ShrimpAdminApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Shrimp Drive Admin',
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: const Color(0xFF0F1218),
-        primaryColor: const Color(0xFFFF6B4A),
-      ),
-      home: const Scaffold(
-        body: Center(
-          child: Text('Shrimp Drive Desktop Admin Ready!'),
-        ),
-      ),
+      theme: AppTheme.darkTheme,
+      home: const DashboardScreen(),
     );
   }
 }
