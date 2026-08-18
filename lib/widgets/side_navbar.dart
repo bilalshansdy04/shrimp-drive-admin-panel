@@ -2,7 +2,14 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 
 class SideNavBar extends StatelessWidget {
-  const SideNavBar({super.key});
+  final int selectedIndex;
+  final Function(int) onItemSelected;
+
+  const SideNavBar({
+    super.key,
+    required this.selectedIndex,
+    required this.onItemSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -62,33 +69,33 @@ class SideNavBar extends StatelessWidget {
             child: ListView(
               children: [
                 _buildNavItem(
+                  index: 0,
                   icon: Icons.dashboard,
                   title: 'Dashboard',
-                  isActive: true,
                 ),
                 const SizedBox(height: 8),
                 _buildNavItem(
+                  index: 1,
                   icon: Icons.key,
                   title: 'Invitation Codes',
-                  isActive: false,
                 ),
                 const SizedBox(height: 8),
                 _buildNavItem(
+                  index: 2,
                   icon: Icons.group,
                   title: 'Users Management',
-                  isActive: false,
                 ),
                 const SizedBox(height: 8),
                 _buildNavItem(
+                  index: 3,
                   icon: Icons.storage,
                   title: 'Telegram Storage',
-                  isActive: false,
                 ),
                 const SizedBox(height: 8),
                 _buildNavItem(
+                  index: 4,
                   icon: Icons.settings,
                   title: 'Settings',
-                  isActive: false,
                 ),
               ],
             ),
@@ -98,9 +105,9 @@ class SideNavBar extends StatelessWidget {
           const Divider(color: AppColors.outline),
           const SizedBox(height: 16),
           _buildNavItem(
+            index: 99,
             icon: Icons.logout,
             title: 'Logout',
-            isActive: false,
           ),
         ],
       ),
@@ -108,10 +115,11 @@ class SideNavBar extends StatelessWidget {
   }
 
   Widget _buildNavItem({
+    required int index,
     required IconData icon,
     required String title,
-    required bool isActive,
   }) {
+    final isActive = selectedIndex == index;
     return Container(
       decoration: BoxDecoration(
         color: isActive ? AppColors.surfaceContainerHigh : Colors.transparent,
@@ -125,7 +133,7 @@ class SideNavBar extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {},
+          onTap: () => onItemSelected(index),
           borderRadius: BorderRadius.circular(4),
           hoverColor: AppColors.surfaceContainerHighest,
           child: Padding(

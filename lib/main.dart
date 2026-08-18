@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:window_manager/window_manager.dart';
-import 'screens/dashboard_screen.dart';
+import 'screens/main_layout.dart';
 import 'theme/app_theme.dart';
 
 void main() async {
@@ -40,7 +40,7 @@ class ShrimpAdminApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Shrimp Drive Admin',
       theme: AppTheme.darkTheme,
-      home: const DashboardScreen(),
+      home: const MainLayout(),
     );
   }
 }
