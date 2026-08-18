@@ -4,6 +4,7 @@ import '../widgets/top_navbar.dart';
 import 'dashboard_screen.dart';
 import 'invitation_codes_screen.dart';
 import 'users_management_screen.dart';
+import 'telegram_storage_screen.dart';
 
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
@@ -52,6 +53,8 @@ class _MainLayoutState extends State<MainLayout> {
         return const InvitationCodesScreen();
       case 2:
         return const UsersManagementScreen();
+      case 3:
+        return const TelegramStorageScreen();
       default:
         return const Center(child: Text('Screen not implemented yet', style: TextStyle(color: Colors.white)));
     }
