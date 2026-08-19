@@ -1,12 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import 'pagination_footer.dart';
+import '../providers/invitation_codes_provider.dart';
+import '../models/invitation_code.dart';
+import 'invitation_code_form_dialog.dart';
 
-class InvitationCodesTable extends StatelessWidget {
+class InvitationCodesTable extends ConsumerWidget {
   const InvitationCodesTable({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final codesAsyncValue = ref.watch(invitationCodesProvider);
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceContainer,
@@ -14,133 +21,119 @@ class InvitationCodesTable extends StatelessWidget {
         border: Border.all(color: AppColors.outline),
       ),
       clipBehavior: Clip.antiAlias,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minWidth: constraints.maxWidth > 1000 ? constraints.maxWidth : 1000,
-                  ),
-                  child: DataTable(
-                    headingRowColor: WidgetStateProperty.all(AppColors.surfaceContainerHigh),
-                    dataRowMinHeight: 72,
-                    dataRowMaxHeight: 72,
-                    headingTextStyle: const TextStyle(
-                      color: AppColors.onSurfaceVariant,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      letterSpacing: 1.5,
-                    ),
-                    dividerThickness: 1,
-                    columns: const [
-                      DataColumn(label: Text('CODE HASH')),
-                      DataColumn(label: Text('SETUP TYPE')),
-                      DataColumn(label: Text('ENCRYPTION')),
-                      DataColumn(label: Text('QUOTA LIMIT')),
-                      DataColumn(label: Text('STATUS')),
-                      DataColumn(label: Text('USED BY / CREATED')),
-                      DataColumn(label: Text('ACTIONS'), numeric: true),
-                    ],
-                    rows: [
-                      _buildRow(
-                        code: 'SD-X9F2-K1L8',
-                        isStrikethrough: false,
-                        setupType: 'Zero Setup',
-                        encryptionIcon: Icons.lock,
-                        encryptionText: 'AES-256',
-                        quotaUsed: '12 GB',
-                        quotaMax: '50 GB',
-                        quotaProgress: 0.24,
-                        quotaColor: AppColors.primary,
-                        statusText: 'Active',
-                        statusColor: AppColors.secondary,
-                        statusBgColor: AppColors.secondary.withOpacity(0.1),
-                        user: 'user_492@corp.com',
-                        time: '2h ago',
-                        actions: [Icons.block, Icons.more_vert],
-                      ),
-                      _buildRow(
-                        code: 'SD-M4V7-P0Q3',
-                        isStrikethrough: false,
-                        setupType: 'Self Setup',
-                        encryptionIcon: Icons.lock_open,
-                        encryptionText: 'None',
-                        quotaUsed: '48 GB',
-                        quotaMax: '50 GB',
-                        quotaProgress: 0.96,
-                        quotaColor: AppColors.error,
-                        statusText: 'Unused',
-                        statusColor: AppColors.primary,
-                        statusBgColor: AppColors.primary.withOpacity(0.1),
-                        user: '-',
-                        isUserItalic: true,
-                        time: '1d ago',
-                        actions: [Icons.delete, Icons.more_vert],
-                      ),
-                      _buildRow(
-                        code: 'SD-A1B2-C3D4',
-                        isStrikethrough: true,
-                        setupType: 'Zero Setup',
-                        encryptionIcon: Icons.lock,
-                        encryptionText: 'AES-256',
-                        isRevoked: true,
-                        quotaColor: AppColors.surfaceContainerLowest, // Not used
-                        statusText: 'Revoked',
-                        statusColor: AppColors.error,
-                        statusBgColor: AppColors.error.withOpacity(0.1),
-                        user: 'admin_test@corp.com',
-                        time: '5d ago',
-                        actions: [Icons.more_vert],
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
+      child: codesAsyncValue.when(
+        data: (codes) => _buildTable(context, ref, codes),
+        loading: () => const Center(
+          child: Padding(
+            padding: EdgeInsets.all(48.0),
+            child: CircularProgressIndicator(),
           ),
-          const PaginationFooter(
-            currentPage: 1,
-            totalPages: 3,
-            startItem: 1,
-            endItem: 3,
-            totalItems: 156,
+        ),
+        error: (e, st) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(48.0),
+            child: Text('Error loading codes: $e', style: const TextStyle(color: AppColors.error)),
           ),
-        ],
+        ),
       ),
     );
   }
 
-  DataRow _buildRow({
-    required String code,
-    required bool isStrikethrough,
-    required String setupType,
-    required IconData encryptionIcon,
-    required String encryptionText,
-    String? quotaUsed,
-    String? quotaMax,
-    double? quotaProgress,
-    required Color quotaColor,
-    bool isRevoked = false,
-    required String statusText,
-    required Color statusColor,
-    required Color statusBgColor,
-    required String user,
-    bool isUserItalic = false,
-    required String time,
-    required List<IconData> actions,
-  }) {
+  Widget _buildTable(BuildContext context, WidgetRef ref, List<InvitationCode> codes) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minWidth: constraints.maxWidth > 1000 ? constraints.maxWidth : 1000,
+                ),
+                child: DataTable(
+                  headingRowColor: WidgetStateProperty.all(AppColors.surfaceContainerHigh),
+                  dataRowMinHeight: 72,
+                  dataRowMaxHeight: 72,
+                  headingTextStyle: const TextStyle(
+                    color: AppColors.onSurfaceVariant,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 1.5,
+                  ),
+                  dividerThickness: 1,
+                  columns: const [
+                    DataColumn(label: Text('CODE NAME')),
+                    DataColumn(label: Text('SETUP TYPE')),
+                    DataColumn(label: Text('ENCRYPTION')),
+                    DataColumn(label: Text('ENCRYPTION KEY')),
+                    DataColumn(label: Text('QUOTA LIMIT')),
+                    DataColumn(label: Text('STATUS')),
+                    DataColumn(label: Text('USED / MAX')),
+                    DataColumn(label: Text('ACTIONS'), numeric: true),
+                  ],
+                  rows: codes.map((code) => _buildRow(context, ref, code)).toList(),
+                ),
+              ),
+            );
+          },
+        ),
+        PaginationFooter(
+          currentPage: 1,
+          totalPages: 1,
+          startItem: 1,
+          endItem: codes.length,
+          totalItems: codes.length,
+        ),
+      ],
+    );
+  }
+
+  DataRow _buildRow(BuildContext context, WidgetRef ref, InvitationCode code) {
+    final isStrikethrough = code.isRevoked;
+    
+    // Setup Type
+    String setupType = code.type == 'friend_zero_setup' ? 'Zero Setup' : 'Self Setup';
+    
+    // Encryption
+    IconData encryptionIcon = Icons.lock_outline;
+    String encryptionText = 'Flexible';
+    if (code.encryptionMode == 'locked_on') {
+      encryptionIcon = Icons.lock;
+      encryptionText = 'AES-256';
+    } else if (code.encryptionMode == 'locked_off') {
+      encryptionIcon = Icons.lock_open;
+      encryptionText = 'None';
+    }
+
+    // Quota Limit
+    String quotaMax = code.storageLimit != null && code.storageLimit! > 0 
+        ? '${(code.storageLimit! / (1024 * 1024 * 1024)).toStringAsFixed(0)} GB' 
+        : 'Limitless';
+
+    // Status
+    String statusText = 'Unused';
+    Color statusColor = AppColors.primary;
+    Color statusBgColor = AppColors.primary.withValues(alpha: 0.1);
+
+    if (code.isRevoked) {
+      statusText = 'Revoked';
+      statusColor = AppColors.error;
+      statusBgColor = AppColors.error.withValues(alpha: 0.1);
+    } else if (code.usedCount > 0) {
+      statusText = 'Active';
+      statusColor = AppColors.secondary;
+      statusBgColor = AppColors.secondary.withValues(alpha: 0.1);
+    }
+
     return DataRow(
       cells: [
-        // CODE HASH
+        // CODE NAME
         DataCell(Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              code,
+              code.code,
               style: TextStyle(
                 color: isStrikethrough ? AppColors.onSurfaceVariant : AppColors.onSurface,
                 fontSize: 14,
@@ -191,41 +184,40 @@ class InvitationCodesTable extends StatelessWidget {
             ],
           ),
         )),
+        // ENCRYPTION KEY
+        DataCell(Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              code.encryptionKey != null ? '${code.encryptionKey!.substring(0, 6)}...${code.encryptionKey!.substring(code.encryptionKey!.length - 6)}' : 'N/A',
+              style: const TextStyle(
+                color: AppColors.onSurfaceVariant,
+                fontSize: 14,
+                fontFamily: 'monospace',
+              ),
+            ),
+            if (code.encryptionKey != null) ...[
+              const SizedBox(width: 4),
+              IconButton(
+                icon: const Icon(Icons.content_copy, size: 14),
+                color: AppColors.onSurfaceVariant,
+                hoverColor: Colors.transparent,
+                highlightColor: Colors.transparent,
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: code.encryptionKey!));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Encryption key copied!')));
+                },
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+              ),
+            ]
+          ],
+        )),
         // QUOTA LIMIT
-        DataCell(isRevoked
-            ? const Text('Revoked', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12))
-            : Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(quotaUsed ?? '', style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12)),
-                      Text(quotaMax ?? '', style: const TextStyle(color: AppColors.onSurface, fontSize: 12)),
-                    ],
-                  ),
-                  const SizedBox(height: 4),
-                  Container(
-                    height: 8,
-                    width: 140, // Fixed width for progress bar
-                    decoration: BoxDecoration(
-                      color: AppColors.surfaceContainerLowest,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: FractionallySizedBox(
-                      alignment: Alignment.centerLeft,
-                      widthFactor: quotaProgress ?? 0,
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: quotaColor,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              )),
+        DataCell(Text(
+          quotaMax, 
+          style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 14)
+        )),
         // STATUS
         DataCell(Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -254,7 +246,7 @@ class InvitationCodesTable extends StatelessWidget {
                   shadows: statusText == 'Active'
                       ? [
                           BoxShadow(
-                            color: statusColor.withOpacity(0.5),
+                            color: statusColor.withValues(alpha: 0.5),
                             blurRadius: 4,
                           )
                         ]
@@ -264,22 +256,21 @@ class InvitationCodesTable extends StatelessWidget {
             ],
           ),
         )),
-        // USED BY / CREATED
+        // USED / MAX
         DataCell(Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              user,
+              '${code.usedCount} / ${code.maxUses}',
               style: TextStyle(
-                color: isStrikethrough ? AppColors.onSurfaceVariant : (isUserItalic ? AppColors.onSurfaceVariant : AppColors.onSurface),
+                color: isStrikethrough ? AppColors.onSurfaceVariant : AppColors.onSurface,
                 fontSize: 14,
-                fontStyle: isUserItalic ? FontStyle.italic : null,
               ),
             ),
             const SizedBox(height: 2),
             Text(
-              time,
+              'Uses',
               style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
             ),
           ],
@@ -288,17 +279,38 @@ class InvitationCodesTable extends StatelessWidget {
         DataCell(Row(
           mainAxisAlignment: MainAxisAlignment.end,
           mainAxisSize: MainAxisSize.min,
-          children: actions.map((icon) {
-            return Padding(
-              padding: const EdgeInsets.only(left: 8.0),
-              child: IconButton(
-                icon: Icon(icon, size: 20),
+          children: [
+            if (!code.isRevoked)
+              IconButton(
+                icon: const Icon(Icons.edit, size: 20),
                 color: AppColors.onSurfaceVariant,
-                hoverColor: icon == Icons.delete || icon == Icons.block ? AppColors.error.withOpacity(0.1) : AppColors.onSurface.withOpacity(0.1),
-                onPressed: () {},
+                hoverColor: AppColors.onSurface.withValues(alpha: 0.1),
+                onPressed: () {
+                  showDialog(
+                    context: context,
+                    builder: (ctx) => InvitationCodeFormDialog(existingCode: code),
+                  );
+                },
               ),
-            );
-          }).toList(),
+            if (!code.isRevoked)
+              IconButton(
+                icon: const Icon(Icons.block, size: 20),
+                color: AppColors.onSurfaceVariant,
+                hoverColor: AppColors.error.withValues(alpha: 0.1),
+                onPressed: () {
+                  ref.read(invitationCodesProvider.notifier).revokeCode(code.code);
+                },
+              ),
+            if (code.usedCount == 0)
+              IconButton(
+                icon: const Icon(Icons.delete, size: 20),
+                color: AppColors.onSurfaceVariant,
+                hoverColor: AppColors.error.withValues(alpha: 0.1),
+                onPressed: () {
+                  ref.read(invitationCodesProvider.notifier).deleteCode(code.code);
+                },
+              ),
+          ],
         )),
       ],
     );

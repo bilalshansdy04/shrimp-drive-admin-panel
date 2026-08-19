@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import '../widgets/invitation_codes_table.dart';
+import '../widgets/invitation_code_form_dialog.dart';
+import '../providers/invitation_codes_provider.dart';
 
-class InvitationCodesScreen extends StatelessWidget {
+class InvitationCodesScreen extends ConsumerWidget {
   const InvitationCodesScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: ConstrainedBox(
@@ -43,13 +46,26 @@ class InvitationCodesScreen extends StatelessWidget {
                 ),
                 Row(
                   children: [
-                    OutlinedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.filter_list, size: 16),
-                      label: const Text('Filter'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.onSurface,
-                        side: const BorderSide(color: AppColors.outline),
+                    IconButton(
+                      icon: const Icon(Icons.refresh, color: AppColors.onSurfaceVariant),
+                      onPressed: () {
+                        ref.invalidate(invitationCodesProvider);
+                      },
+                      tooltip: 'Refresh Data',
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton.icon(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => const InvitationCodeFormDialog(),
+                        );
+                      },
+                      icon: const Icon(Icons.add, size: 16),
+                      label: const Text('Create Code'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primary,
+                        foregroundColor: AppColors.onPrimaryContainer,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                         textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
