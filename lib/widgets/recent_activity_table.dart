@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
+import 'package:intl/intl.dart';
 
 class RecentActivityTable extends StatelessWidget {
-  const RecentActivityTable({super.key});
+  final Map<String, dynamic>? recentActivity;
+  
+  const RecentActivityTable({super.key, this.recentActivity});
 
   @override
   Widget build(BuildContext context) {
@@ -80,48 +83,7 @@ class RecentActivityTable extends StatelessWidget {
                       DataColumn(label: Text('DETAILS')),
                       DataColumn(label: Text('STATUS'), numeric: true),
                     ],
-                rows: [
-                  _buildRow(
-                    timestamp: '2023-10-27 14:32:01',
-                    eventIcon: Icons.person_add,
-                    eventColor: AppColors.secondary,
-                    eventText: 'New Registration',
-                    user: 'user_789x',
-                    details: 'Used invite code ALPHA-99',
-                    status: 'Success',
-                    statusColor: AppColors.secondary,
-                  ),
-                  _buildRow(
-                    timestamp: '2023-10-27 14:15:45',
-                    eventIcon: Icons.cloud_upload,
-                    eventColor: AppColors.tertiary,
-                    eventText: 'Large File Upload',
-                    user: 'archivist_01',
-                    details: 'Dataset_v4.tar.gz (45GB)',
-                    status: 'Completed',
-                    statusColor: AppColors.secondary,
-                  ),
-                  _buildRow(
-                    timestamp: '2023-10-27 13:50:12',
-                    eventIcon: Icons.warning,
-                    eventColor: AppColors.error,
-                    eventText: 'Quota Warning',
-                    user: 'data_node_4',
-                    details: 'Approaching 95% storage capacity',
-                    status: 'Alert',
-                    statusColor: AppColors.error,
-                  ),
-                  _buildRow(
-                    timestamp: '2023-10-27 12:05:00',
-                    eventIcon: Icons.vpn_key,
-                    eventColor: AppColors.primary,
-                    eventText: 'Invite Generated',
-                    user: 'admin_root',
-                    details: 'Generated 50 new standard codes',
-                    status: 'Success',
-                    statusColor: AppColors.secondary,
-                  ),
-                    ],
+                rows: _buildDynamicRows(),
                   ),
                 ),
               );
@@ -131,6 +93,58 @@ class RecentActivityTable extends StatelessWidget {
       ),
     );
   }
+
+  List<DataRow> _buildDynamicRows() {
+    if (recentActivity == null) return [];
+    
+    List<Map<String, dynamic>> allEvents = [];
+    
+    if (recentActivity!['users'] != null) {
+      for (var u in recentActivity!['users']) {
+        allEvents.add({
+          'timestamp': DateTime.parse(u['createdAt']),
+          'icon': Icons.person_add,
+          'color': AppColors.secondary,
+          'eventText': 'New Registration',
+          'user': u['username'] ?? u['id'],
+          'details': 'User signed up',
+          'status': 'Success',
+          'statusColor': AppColors.secondary,
+        });
+      }
+    }
+    
+    if (recentActivity!['files'] != null) {
+      for (var f in recentActivity!['files']) {
+        allEvents.add({
+          'timestamp': DateTime.parse(f['createdAt']),
+          'icon': Icons.cloud_upload,
+          'color': AppColors.tertiary,
+          'eventText': 'File Upload',
+          'user': 'system', // or fetch user from file info if available
+          'details': f['fileName'],
+          'status': 'Completed',
+          'statusColor': AppColors.secondary,
+        });
+      }
+    }
+    
+    allEvents.sort((a, b) => (b['timestamp'] as DateTime).compareTo(a['timestamp'] as DateTime));
+    
+    return allEvents.map((e) {
+      return _buildRow(
+        timestamp: DateFormat('yyyy-MM-dd HH:mm:ss').format(e['timestamp']),
+        eventIcon: e['icon'],
+        eventColor: e['color'],
+        eventText: e['eventText'],
+        user: e['user'],
+        details: e['details'],
+        status: e['status'],
+        statusColor: e['statusColor'],
+      );
+    }).toList();
+  }
+
 
   DataRow _buildRow({
     required String timestamp,
