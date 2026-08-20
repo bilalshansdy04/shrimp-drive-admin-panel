@@ -7,14 +7,18 @@ import 'users_management_screen.dart';
 import 'telegram_storage_screen.dart';
 import 'settings_screen.dart';
 
-class MainLayout extends StatefulWidget {
+import '../providers/api_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'login_screen.dart';
+
+class MainLayout extends ConsumerStatefulWidget {
   const MainLayout({super.key});
 
   @override
-  State<MainLayout> createState() => _MainLayoutState();
+  ConsumerState<MainLayout> createState() => _MainLayoutState();
 }
 
-class _MainLayoutState extends State<MainLayout> {
+class _MainLayoutState extends ConsumerState<MainLayout> {
   int _selectedIndex = 0;
 
   @override
@@ -24,8 +28,17 @@ class _MainLayoutState extends State<MainLayout> {
         children: [
           SideNavBar(
             selectedIndex: _selectedIndex,
-            onItemSelected: (index) {
-              if (index == 99) return; // Ignore logout for now
+            onItemSelected: (index) async {
+              if (index == 99) {
+                // Logout
+                await ref.read(apiServiceProvider).logout();
+                if (!context.mounted) return;
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (route) => false,
+                );
+                return;
+              }
               setState(() {
                 _selectedIndex = index;
               });

@@ -107,8 +107,8 @@ class InvitationCodesTable extends ConsumerWidget {
     }
 
     // Quota Limit
-    String quotaMax = code.storageLimit != null && code.storageLimit! > 0 
-        ? '${(code.storageLimit! / (1024 * 1024 * 1024)).toStringAsFixed(0)} GB' 
+    String quotaMax = code.bonusAmount != null && code.bonusAmount! > 0
+        ? '${(code.bonusAmount! / (1024 * 1024 * 1024)).toStringAsFixed(0)} GB'
         : 'Limitless';
 
     // Status
@@ -269,9 +269,9 @@ class InvitationCodesTable extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 2),
-            Text(
+            const Text(
               'Uses',
-              style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
+              style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
             ),
           ],
         )),

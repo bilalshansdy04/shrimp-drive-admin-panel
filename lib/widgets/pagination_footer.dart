@@ -84,9 +84,9 @@ class PaginationFooter extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           padding: EdgeInsets.zero,
           foregroundColor: AppColors.onSurface,
-          disabledForegroundColor: AppColors.onSurfaceVariant.withOpacity(0.5),
+          disabledForegroundColor: AppColors.onSurfaceVariant.withValues(alpha: 0.5),
           side: BorderSide(
-            color: onPressed != null ? AppColors.outline : AppColors.outline.withOpacity(0.5),
+            color: onPressed != null ? AppColors.outline : AppColors.outline.withValues(alpha: 0.5),
           ),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
         ),

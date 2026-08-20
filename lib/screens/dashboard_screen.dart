@@ -24,11 +24,11 @@ class DashboardScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Page Header
-                Row(
+                const Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Column(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
@@ -50,12 +50,6 @@ class DashboardScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    IconButton(
-                      onPressed: () => ref.invalidate(dashboardProvider),
-                      icon: const Icon(Icons.refresh),
-                      tooltip: 'Refresh Dashboard',
-                      color: AppColors.primary,
-                    ),
                   ],
                 ),
                 const SizedBox(height: 24),
@@ -74,15 +68,6 @@ class DashboardScreen extends ConsumerWidget {
                       children: [
                         Text('Error: $error', style: const TextStyle(color: AppColors.error)),
                         const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: () => ref.invalidate(dashboardProvider),
-                          icon: const Icon(Icons.refresh),
-                          label: const Text('Coba Lagi (Retry)'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: AppColors.surface,
-                          ),
-                        ),
                       ],
                     ),
                   ),

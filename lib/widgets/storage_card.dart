@@ -7,6 +7,8 @@ class StorageCard extends StatelessWidget {
   final String botToken;
   final String chatId;
   final bool isConnected;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const StorageCard({
     super.key,
@@ -15,6 +17,8 @@ class StorageCard extends StatelessWidget {
     required this.botToken,
     required this.chatId,
     this.isConnected = true,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -28,7 +32,7 @@ class StorageCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {},
+          onTap: onEdit,
           hoverColor: AppColors.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(8),
           child: Padding(
@@ -77,7 +81,7 @@ class StorageCard extends StatelessWidget {
                                     shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: (isConnected ? AppColors.secondary : AppColors.error).withOpacity(0.5),
+                                        color: (isConnected ? AppColors.secondary : AppColors.error).withValues(alpha: 0.5),
                                         blurRadius: 4,
                                       )
                                     ],
@@ -99,9 +103,9 @@ class StorageCard extends StatelessWidget {
                       ],
                     ),
                     IconButton(
-                      icon: const Icon(Icons.more_vert, size: 20),
+                      icon: const Icon(Icons.edit, size: 20),
                       color: AppColors.onSurfaceVariant,
-                      onPressed: () {},
+                      onPressed: onEdit,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -139,7 +143,7 @@ class StorageCard extends StatelessWidget {
                     Expanded(
                       flex: 1,
                       child: OutlinedButton(
-                        onPressed: () {},
+                        onPressed: onDelete,
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.error,
                           side: const BorderSide(color: AppColors.error),

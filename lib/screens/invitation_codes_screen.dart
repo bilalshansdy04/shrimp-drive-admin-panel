@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import '../widgets/invitation_codes_table.dart';
 import '../widgets/invitation_code_form_dialog.dart';
-import '../providers/invitation_codes_provider.dart';
 
 class InvitationCodesScreen extends ConsumerWidget {
   const InvitationCodesScreen({super.key});
@@ -46,14 +45,6 @@ class InvitationCodesScreen extends ConsumerWidget {
                 ),
                 Row(
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.refresh, color: AppColors.onSurfaceVariant),
-                      onPressed: () {
-                        ref.invalidate(invitationCodesProvider);
-                      },
-                      tooltip: 'Refresh Data',
-                    ),
-                    const SizedBox(width: 8),
                     ElevatedButton.icon(
                       onPressed: () {
                         showDialog(

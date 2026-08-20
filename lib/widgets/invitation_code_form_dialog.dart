@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/invitation_code.dart';
 import '../providers/invitation_codes_provider.dart';
+import '../providers/telegram_nodes_provider.dart';
 import '../theme/app_theme.dart';
 
 class InvitationCodeFormDialog extends ConsumerStatefulWidget {
@@ -20,33 +21,32 @@ class _InvitationCodeFormDialogState extends ConsumerState<InvitationCodeFormDia
   late String _type;
   late String _encryptionMode;
   late String _maxUses;
-  late String _storageLimitGB;
+  late String _bonusAmountGB;
   
-  String? _botToken;
-  String? _chatId;
+  String? _selectedNodeId;
   
   bool _isLimitless = false;
 
   @override
   void initState() {
     super.initState();
+    Future.microtask(() => ref.read(telegramNodesProvider.notifier).build());
+
     _code = widget.existingCode?.code ?? '';
     _type = widget.existingCode?.type ?? 'friend_zero_setup';
     _encryptionMode = widget.existingCode?.encryptionMode ?? 'locked_on';
     _maxUses = widget.existingCode?.maxUses.toString() ?? '1';
     
-    _botToken = widget.existingCode?.assignedBotToken;
-    _chatId = widget.existingCode?.assignedChatId;
-    
     if (widget.existingCode != null) {
-      _isLimitless = widget.existingCode!.storageLimit == null || widget.existingCode!.storageLimit == 0;
+      _selectedNodeId = widget.existingCode!.assignedNodeId;
+      _isLimitless = widget.existingCode!.bonusAmount == null || widget.existingCode!.bonusAmount == 0;
       if (!_isLimitless) {
-        _storageLimitGB = (widget.existingCode!.storageLimit! / (1024 * 1024 * 1024)).toStringAsFixed(0);
+        _bonusAmountGB = (widget.existingCode!.bonusAmount! / (1024 * 1024 * 1024)).toStringAsFixed(0);
       } else {
-        _storageLimitGB = '50';
+        _bonusAmountGB = '50';
       }
     } else {
-      _storageLimitGB = '50';
+      _bonusAmountGB = '50';
     }
   }
 
@@ -61,15 +61,16 @@ class _InvitationCodeFormDialogState extends ConsumerState<InvitationCodeFormDia
       };
 
       if (_type == 'friend_zero_setup') {
-        data['assignedBotToken'] = _botToken;
-        data['assignedChatId'] = _chatId;
+        if (_selectedNodeId != null) {
+          data['assignedNodeId'] = _selectedNodeId;
+        }
       }
 
       if (!_isLimitless) {
-        final gb = double.tryParse(_storageLimitGB) ?? 0;
-        data['storageLimit'] = (gb * 1024 * 1024 * 1024).toInt(); // Convert GB to Bytes
+        final gb = double.tryParse(_bonusAmountGB) ?? 0;
+        data['bonusAmount'] = (gb * 1024 * 1024 * 1024).toInt(); // Convert GB to Bytes
       } else {
-        data['storageLimit'] = 0; // Limitless
+        data['bonusAmount'] = 0; // Limitless
       }
 
       if (widget.existingCode == null) {
@@ -90,6 +91,7 @@ class _InvitationCodeFormDialogState extends ConsumerState<InvitationCodeFormDia
   @override
   Widget build(BuildContext context) {
     final isEdit = widget.existingCode != null;
+    final nodesAsync = ref.watch(telegramNodesProvider);
 
     return AlertDialog(
       backgroundColor: AppColors.surfaceContainer,
@@ -116,7 +118,7 @@ class _InvitationCodeFormDialogState extends ConsumerState<InvitationCodeFormDia
                 ),
                 const SizedBox(height: 16),
                 DropdownButtonFormField<String>(
-                  value: _type,
+                  initialValue: _type,
                   decoration: const InputDecoration(labelText: 'Setup Type'),
                   items: const [
                     DropdownMenuItem(value: 'friend_zero_setup', child: Text('Pakai Storage Ku (Zero Setup)')),
@@ -133,36 +135,42 @@ class _InvitationCodeFormDialogState extends ConsumerState<InvitationCodeFormDia
                 ),
                 if (_type == 'friend_zero_setup') ...[
                   const SizedBox(height: 16),
-                  TextFormField(
-                    initialValue: _botToken,
-                    decoration: const InputDecoration(labelText: 'Telegram Bot Token'),
-                    validator: (val) {
-                      if (_type == 'friend_zero_setup' && (val == null || val.isEmpty)) {
-                        return 'Required for Zero Setup';
+                  nodesAsync.when(
+                    loading: () => const CircularProgressIndicator(),
+                    error: (err, stack) => Text('Error loading nodes: $err', style: const TextStyle(color: AppColors.error)),
+                    data: (nodes) {
+                      if (_selectedNodeId == null && nodes.isNotEmpty && !isEdit) {
+                         // Default to first node if available
+                        _selectedNodeId = nodes.first.id;
                       }
-                      return null;
+
+                      final items = nodes.map((node) => DropdownMenuItem(
+                        value: node.id,
+                        child: Text(node.name),
+                      )).toList();
+
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          DropdownButtonFormField<String>(
+                            initialValue: _selectedNodeId,
+                            decoration: const InputDecoration(labelText: 'Select Storage Node'),
+                            items: items,
+                            dropdownColor: AppColors.surfaceContainerHigh,
+                            style: const TextStyle(color: AppColors.onSurface),
+                            onChanged: (val) {
+                              if (val != null) setState(() => _selectedNodeId = val);
+                            },
+                          ),
+                        ],
+                      );
                     },
-                    style: const TextStyle(color: AppColors.onSurface),
-                    onSaved: (val) => _botToken = val?.trim(),
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    initialValue: _chatId,
-                    decoration: const InputDecoration(labelText: 'Telegram Channel/Chat ID'),
-                    validator: (val) {
-                      if (_type == 'friend_zero_setup' && (val == null || val.isEmpty)) {
-                        return 'Required for Zero Setup';
-                      }
-                      return null;
-                    },
-                    style: const TextStyle(color: AppColors.onSurface),
-                    onSaved: (val) => _chatId = val?.trim(),
                   ),
                 ],
                 const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _encryptionMode,
-                  decoration: const InputDecoration(labelText: 'Encryption Mode'),
+                  DropdownButtonFormField<String>(
+                    initialValue: _encryptionMode,
+                    decoration: const InputDecoration(labelText: 'Encryption Mode'),
                   items: const [
                     DropdownMenuItem(value: 'locked_on', child: Text('Locked On (Encrypted)')),
                     DropdownMenuItem(value: 'locked_off', child: Text('Locked Off (Not Encrypted)')),
@@ -196,9 +204,9 @@ class _InvitationCodeFormDialogState extends ConsumerState<InvitationCodeFormDia
                   children: [
                     Expanded(
                       child: TextFormField(
-                        initialValue: _storageLimitGB,
+                        initialValue: _bonusAmountGB,
                         decoration: const InputDecoration(
-                          labelText: 'Storage Limit (GB)',
+                          labelText: 'Storage Bonus (GB)',
                         ),
                         keyboardType: TextInputType.number,
                         enabled: !_isLimitless,
@@ -208,7 +216,7 @@ class _InvitationCodeFormDialogState extends ConsumerState<InvitationCodeFormDia
                           return null;
                         } : null,
                         style: const TextStyle(color: AppColors.onSurface),
-                        onSaved: (val) => _storageLimitGB = val ?? '0',
+                        onSaved: (val) => _bonusAmountGB = val ?? '0',
                       ),
                     ),
                     const SizedBox(width: 16),

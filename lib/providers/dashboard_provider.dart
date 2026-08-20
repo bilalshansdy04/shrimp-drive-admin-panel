@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/api_service.dart';
-
-final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
+import 'api_provider.dart';
+export 'api_provider.dart';
 
 final dashboardProvider = FutureProvider<Map<String, dynamic>>((ref) async {
   final api = ref.read(apiServiceProvider);

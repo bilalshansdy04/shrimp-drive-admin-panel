@@ -4,12 +4,11 @@ class InvitationCode {
   final String type;
   final String encryptionMode;
   final String? encryptionKey;
-  final int? storageLimit;
+  final int? bonusAmount;
   final int usedCount;
   final int maxUses;
   final bool isRevoked;
-  final String? assignedBotToken;
-  final String? assignedChatId;
+  final String? assignedNodeId;
   final DateTime createdAt;
 
   InvitationCode({
@@ -18,12 +17,11 @@ class InvitationCode {
     required this.type,
     required this.encryptionMode,
     this.encryptionKey,
-    this.storageLimit,
+    this.bonusAmount,
     required this.usedCount,
     required this.maxUses,
     required this.isRevoked,
-    this.assignedBotToken,
-    this.assignedChatId,
+    this.assignedNodeId,
     required this.createdAt,
   });
 
@@ -34,12 +32,11 @@ class InvitationCode {
       type: json['type'] as String? ?? '',
       encryptionMode: json['encryptionMode'] as String? ?? '',
       encryptionKey: json['encryptionKey'] as String?,
-      storageLimit: json['storageLimit'] as int?,
+      bonusAmount: json['bonusAmount'] as int?,
       usedCount: json['usedCount'] as int? ?? 0,
       maxUses: json['maxUses'] as int? ?? 1,
       isRevoked: json['isRevoked'] as bool? ?? false,
-      assignedBotToken: json['assignedBotToken'] as String?,
-      assignedChatId: json['assignedChatId'] as String?,
+      assignedNodeId: json['assignedNodeId'] as String?,
       createdAt: json['createdAt'] != null
           ? DateTime.parse(json['createdAt'] as String)
           : DateTime.now(),
@@ -53,12 +50,11 @@ class InvitationCode {
       'type': type,
       'encryptionMode': encryptionMode,
       'encryptionKey': encryptionKey,
-      'storageLimit': storageLimit,
+      'bonusAmount': bonusAmount,
       'usedCount': usedCount,
       'maxUses': maxUses,
       'isRevoked': isRevoked,
-      'assignedBotToken': assignedBotToken,
-      'assignedChatId': assignedChatId,
+      'assignedNodeId': assignedNodeId,
       'createdAt': createdAt.toIso8601String(),
     };
   }

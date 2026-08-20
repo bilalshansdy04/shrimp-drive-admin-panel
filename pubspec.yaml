@@ -36,6 +36,7 @@ dependencies:
   # --- [ UI & Icons ] ---
   lucide_icons: ^0.257.0
   shadcn_ui: ^0.12.0 # Opsional: jika ingin komponen UI shadcn siap pakai
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:
