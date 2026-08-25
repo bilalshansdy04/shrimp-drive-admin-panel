@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
-import 'pagination_footer.dart';
 import '../providers/invitation_codes_provider.dart';
 import '../models/invitation_code.dart';
 import 'invitation_code_form_dialog.dart';
@@ -77,13 +76,6 @@ class InvitationCodesTable extends ConsumerWidget {
               ),
             );
           },
-        ),
-        PaginationFooter(
-          currentPage: 1,
-          totalPages: 1,
-          startItem: 1,
-          endItem: codes.length,
-          totalItems: codes.length,
         ),
       ],
     );

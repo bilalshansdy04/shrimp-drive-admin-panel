@@ -4,7 +4,6 @@ import '../theme/app_theme.dart';
 import '../providers/users_provider.dart';
 import '../utils/formatters.dart';
 
-
 class UsersListView extends ConsumerStatefulWidget {
   const UsersListView({super.key});
 
@@ -22,7 +21,7 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
   @override
   Widget build(BuildContext context) {
     final usersAsync = ref.watch(usersProvider);
-    
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceContainer,
@@ -66,13 +65,26 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
                 ),
                 Expanded(
                   flex: 4,
-                  child: Text(
-                    'QUOTA USED',
-                    style: TextStyle(
-                      color: AppColors.onSurfaceVariant,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'QUOTA USED',
+                        style: TextStyle(
+                          color: AppColors.onSurfaceVariant,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        'QUOTA TOTAL',
+                        style: TextStyle(
+                          color: AppColors.onSurfaceVariant,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -82,10 +94,14 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
           Expanded(
             child: usersAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (err, stack) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.red))),
+              error: (err, stack) => Center(
+                  child: Text('Error: $err',
+                      style: const TextStyle(color: Colors.red))),
               data: (users) {
                 if (users.isEmpty) {
-                  return const Center(child: Text('No users found', style: TextStyle(color: AppColors.onSurfaceVariant)));
+                  return const Center(
+                      child: Text('No users found',
+                          style: TextStyle(color: AppColors.onSurfaceVariant)));
                 }
                 return ListView.builder(
                   itemCount: users.length,
@@ -93,25 +109,35 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
                     final user = users[index];
                     final quotaUsed = Formatters.formatBytes(user.storageUsed);
                     final quotaMax = Formatters.formatBytes(user.storageLimit);
-                    final quotaProgress = user.storageLimit > 0 ? (user.storageUsed / user.storageLimit).clamp(0.0, 1.0) : 0.0;
-                    
+                    final quotaProgress = user.storageLimit > 0
+                        ? (user.storageUsed / user.storageLimit).clamp(0.0, 1.0)
+                        : 0.0;
+
                     return _buildRow(
-                      isSelected: false, // You can implement selection state if needed
-                      email: user.email ?? user.username,
-                      id: user.id,
-                      status: user.isActive ? 'Active' : 'Deactivated',
-                      statusColor: user.isActive ? AppColors.primary : AppColors.error,
-                      statusBgColor: user.isActive ? AppColors.primary.withValues(alpha: 0.1) : AppColors.error.withValues(alpha: 0.1),
-                      statusBorderColor: user.isActive ? AppColors.primary.withValues(alpha: 0.2) : AppColors.error.withValues(alpha: 0.2),
-                      quotaUsed: quotaUsed,
-                      quotaMax: quotaMax,
-                      quotaProgress: quotaProgress,
-                      quotaColor: quotaProgress > 0.9 ? AppColors.error : AppColors.primary,
-                      isStrikethrough: !user.isActive,
-                      onTap: () {
-                        ref.read(selectedUserIdProvider.notifier).state = user.id;
-                      }
-                    );
+                        isSelected:
+                            false, // You can implement selection state if needed
+                        email: user.email ?? user.username,
+                        id: user.id,
+                        status: user.isActive ? 'Active' : 'Deactivated',
+                        statusColor:
+                            user.isActive ? AppColors.primary : AppColors.error,
+                        statusBgColor: user.isActive
+                            ? AppColors.primary.withValues(alpha: 0.1)
+                            : AppColors.error.withValues(alpha: 0.1),
+                        statusBorderColor: user.isActive
+                            ? AppColors.primary.withValues(alpha: 0.2)
+                            : AppColors.error.withValues(alpha: 0.2),
+                        quotaUsed: quotaUsed,
+                        quotaMax: quotaMax,
+                        quotaProgress: quotaProgress,
+                        quotaColor: quotaProgress > 0.9
+                            ? AppColors.error
+                            : AppColors.primary,
+                        isStrikethrough: !user.isActive,
+                        onTap: () {
+                          ref.read(selectedUserIdProvider.notifier).state =
+                              user.id;
+                        });
                   },
                 );
               },
@@ -150,7 +176,8 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
           ),
           foregroundDecoration: isSelected
               ? const BoxDecoration(
-                  border: Border(left: BorderSide(color: AppColors.primary, width: 4)),
+                  border: Border(
+                      left: BorderSide(color: AppColors.primary, width: 4)),
                 )
               : null,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -170,7 +197,9 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
                           color: AppColors.onSurface,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          decoration: isStrikethrough ? TextDecoration.lineThrough : null,
+                          decoration: isStrikethrough
+                              ? TextDecoration.lineThrough
+                              : null,
                           decorationColor: AppColors.error,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -193,7 +222,8 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
                         color: statusBgColor,
                         borderRadius: BorderRadius.circular(4),
@@ -233,8 +263,14 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(quotaUsed, style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 10)),
-                          Text(quotaMax, style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 10)),
+                          Text(quotaUsed,
+                              style: const TextStyle(
+                                  color: AppColors.onSurfaceVariant,
+                                  fontSize: 10)),
+                          Text(quotaMax,
+                              style: const TextStyle(
+                                  color: AppColors.onSurfaceVariant,
+                                  fontSize: 10)),
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -243,7 +279,10 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
                         decoration: BoxDecoration(
                           color: AppColors.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(4),
-                          border: isStrikethrough ? Border.all(color: AppColors.error.withValues(alpha: 0.3)) : null,
+                          border: isStrikethrough
+                              ? Border.all(
+                                  color: AppColors.error.withValues(alpha: 0.3))
+                              : null,
                         ),
                         child: FractionallySizedBox(
                           alignment: Alignment.centerLeft,
@@ -251,7 +290,10 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
                           child: Container(
                             decoration: BoxDecoration(
                               gradient: isGradient
-                                  ? const LinearGradient(colors: [AppColors.secondary, AppColors.tertiary])
+                                  ? const LinearGradient(colors: [
+                                      AppColors.secondary,
+                                      AppColors.tertiary
+                                    ])
                                   : null,
                               color: isGradient ? null : quotaColor,
                               borderRadius: BorderRadius.circular(4),

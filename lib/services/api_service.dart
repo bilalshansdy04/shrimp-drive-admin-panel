@@ -161,6 +161,18 @@ class ApiService {
     }
   }
 
+  Future<String> testTelegramNode(String botToken, String chatId) async {
+    try {
+      final response = await _dio.post('/telegram-nodes/test', data: {
+        'botToken': botToken,
+        'chatId': chatId,
+      });
+      return response.data['data']['chatTitle'] ?? 'Connected';
+    } catch (e) {
+      throw Exception('Connection failed');
+    }
+  }
+
   // --- Settings ---
 
   Future<Map<String, String>> getSettings() async {

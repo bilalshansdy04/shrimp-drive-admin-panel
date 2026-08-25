@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../widgets/storage_card.dart';
 import '../widgets/add_storage_card.dart';
 import '../providers/telegram_nodes_provider.dart';
+import '../providers/api_provider.dart';
 import '../models/telegram_node.dart';
 
 class TelegramStorageScreen extends ConsumerStatefulWidget {
@@ -83,7 +84,13 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
                 } else {
                   await ref.read(telegramNodesProvider.notifier).createNode(data);
                 }
-                if (context.mounted) Navigator.pop(context);
+                if (context.mounted) {
+                  if (ref.read(telegramNodesProvider).hasError) {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${ref.read(telegramNodesProvider).error}')));
+                  } else {
+                    Navigator.pop(context);
+                  }
+                }
               },
               child: Text(isEditing ? 'Save Changes' : 'Add Node'),
             )
@@ -190,9 +197,8 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
                     itemCount: nodes.length + 1,
                     itemBuilder: (context, index) {
                       if (index == nodes.length) {
-                        return GestureDetector(
+                        return AddStorageCard(
                           onTap: () => _showNodeFormDialog(),
-                          child: const AddStorageCard(),
                         );
                       }
                       final node = nodes[index];
@@ -204,6 +210,18 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
                         isConnected: node.isActive,
                         onEdit: () => _showNodeFormDialog(node),
                         onDelete: () => _confirmDelete(node),
+                        onTestConnection: () async {
+                          try {
+                            final title = await ref.read(apiServiceProvider).testTelegramNode(node.botToken, node.chatId);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Connected to: $title')));
+                            }
+                          } catch (e) {
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Connection failed. Please check token and chat ID.')));
+                            }
+                          }
+                        },
                       );
                     },
                   );

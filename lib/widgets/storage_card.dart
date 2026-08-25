@@ -10,6 +10,8 @@ class StorageCard extends StatelessWidget {
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
+  final VoidCallback? onTestConnection;
+
   const StorageCard({
     super.key,
     required this.title,
@@ -19,6 +21,7 @@ class StorageCard extends StatelessWidget {
     this.isConnected = true,
     this.onEdit,
     this.onDelete,
+    this.onTestConnection,
   });
 
   @override
@@ -127,7 +130,7 @@ class StorageCard extends StatelessWidget {
                     Expanded(
                       flex: 3,
                       child: OutlinedButton.icon(
-                        onPressed: () {},
+                        onPressed: onTestConnection,
                         icon: const Icon(Icons.network_check, size: 16),
                         label: const Text('Test Connection'),
                         style: OutlinedButton.styleFrom(

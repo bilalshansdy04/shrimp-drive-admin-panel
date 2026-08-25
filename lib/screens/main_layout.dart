@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import '../widgets/side_navbar.dart';
-import '../widgets/top_navbar.dart';
 import 'dashboard_screen.dart';
 import 'invitation_codes_screen.dart';
 import 'users_management_screen.dart';
 import 'telegram_storage_screen.dart';
-import 'settings_screen.dart';
 
 import '../providers/api_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -47,7 +45,6 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
           Expanded(
             child: Column(
               children: [
-                const TopNavBar(),
                 Expanded(
                   child: _buildCurrentScreen(),
                 ),
@@ -69,8 +66,6 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
         return const UsersManagementScreen();
       case 3:
         return const TelegramStorageScreen();
-      case 4:
-        return const SettingsScreen();
       default:
         return const Center(child: Text('Screen not implemented yet', style: TextStyle(color: Colors.white)));
     }

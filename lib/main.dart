@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:window_manager/window_manager.dart';
 import 'screens/main_layout.dart';
 import 'screens/login_screen.dart';
 import 'theme/app_theme.dart';
@@ -9,22 +8,11 @@ import 'providers/api_provider.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inisialisasi Window Manager Desktop
-  await windowManager.ensureInitialized();
-  WindowOptions windowOptions = const WindowOptions(
-    size: Size(1200, 800),
-    minimumSize: Size(1024, 700),
-    center: true,
-    title: 'Shrimp Drive — Master Admin Panel',
-    backgroundColor: Colors.transparent,
-    skipTaskbar: false,
-    titleBarStyle: TitleBarStyle.normal,
-  );
-
-  windowManager.waitUntilReadyToShow(windowOptions, () async {
-    await windowManager.show();
-    await windowManager.focus();
-  });
+  // await windowManager.ensureInitialized();
+  // await windowManager.setMinimumSize(const Size(1024, 700));
+  // await windowManager.setTitle('Shrimp Drive - Master Admin Panel');
+  // await windowManager.show();
+  // await windowManager.focus();
 
   runApp(
     const ProviderScope(
