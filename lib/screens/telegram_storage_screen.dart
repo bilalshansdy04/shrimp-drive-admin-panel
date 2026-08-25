@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:file_picker/file_picker.dart';
 import '../theme/app_theme.dart';
 import '../widgets/storage_card.dart';
 import '../widgets/add_storage_card.dart';
@@ -244,6 +245,86 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
     );
   }
 
+  void _showRestoreDatabaseDialog() async {
+    // We use flutter_file_picker to pick the JSON
+    
+    FilePickerResult? result = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['json'],
+    );
+
+    if (result != null && context.mounted) {
+      final file = result.files.single;
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (dialogContext) {
+          bool isRestoring = false;
+          return StatefulBuilder(
+            builder: (ctx, setState) {
+              return AlertDialog(
+                backgroundColor: AppColors.surfaceContainerHigh,
+                title: const Text('Restore Database', style: TextStyle(color: AppColors.onSurface)),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('File selected: ${file.name}', style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.onSurface)),
+                    const SizedBox(height: 16),
+                    const Text(
+                      'Are you sure you want to restore the database?\nThis will merge the data from the backup file. Existing data will NOT be overwritten, only missing data will be inserted.',
+                      style: TextStyle(color: AppColors.onSurfaceVariant),
+                    ),
+                    if (isRestoring) ...[
+                      const SizedBox(height: 16),
+                      const Center(child: CircularProgressIndicator()),
+                    ]
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: isRestoring ? null : () => Navigator.pop(dialogContext),
+                    child: const Text('Cancel'),
+                  ),
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+                    onPressed: isRestoring ? null : () async {
+                      setState(() => isRestoring = true);
+                      try {
+                        final data = file.bytes ?? file.path;
+                        await ref.read(apiServiceProvider).restoreDatabase(data, file.name);
+                        if (dialogContext.mounted) {
+                          Navigator.pop(dialogContext);
+                          ScaffoldMessenger.of(dialogContext).showSnackBar(
+                            const SnackBar(content: Text('Database restored successfully!')),
+                          );
+                          // Refresh nodes
+                          ref.invalidate(telegramNodesProvider);
+                        }
+                      } catch (e) {
+                        if (dialogContext.mounted) {
+                          ScaffoldMessenger.of(dialogContext).showSnackBar(
+                            SnackBar(content: Text('Restore failed: $e')),
+                          );
+                        }
+                      } finally {
+                        if (dialogContext.mounted) {
+                          setState(() => isRestoring = false);
+                        }
+                      }
+                    },
+                    icon: const Icon(Icons.restore, size: 18, color: Colors.white),
+                    label: const Text('Restore Now', style: TextStyle(color: Colors.white)),
+                  )
+                ],
+              );
+            }
+          );
+        }
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final nodesAsync = ref.watch(telegramNodesProvider);
@@ -284,6 +365,18 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
                 ),
                 Row(
                   children: [
+                    FilledButton.icon(
+                      onPressed: () => _showRestoreDatabaseDialog(),
+                      icon: const Icon(Icons.restore, size: 18),
+                      label: const Text('Restore DB', style: TextStyle(fontWeight: FontWeight.bold)),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.surfaceContainerHigh,
+                        foregroundColor: AppColors.error,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
                     FilledButton.icon(
                       onPressed: () => _showBackupDatabaseDialog(),
                       icon: const Icon(Icons.backup, size: 18),

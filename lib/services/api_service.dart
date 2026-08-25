@@ -194,6 +194,25 @@ class ApiService {
     }
   }
 
+  Future<void> restoreDatabase(dynamic fileBytesOrPath, String fileName) async {
+    try {
+      final formData = FormData.fromMap({
+        'file': fileBytesOrPath is String 
+          ? await MultipartFile.fromFile(fileBytesOrPath, filename: fileName)
+          : MultipartFile.fromBytes(fileBytesOrPath as List<int>, filename: fileName),
+      });
+      final response = await _dio.post('/restore-db', data: formData);
+      if (response.data['success'] != true) {
+        throw Exception(response.data['message'] ?? 'Failed to restore database');
+      }
+    } catch (e) {
+      if (e is DioException) {
+        throw Exception(e.response?.data['message'] ?? 'Failed to restore database');
+      }
+      throw Exception('Failed to restore database: $e');
+    }
+  }
+
   // --- Settings ---
 
   Future<Map<String, String>> getSettings() async {
