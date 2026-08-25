@@ -173,6 +173,23 @@ class ApiService {
     }
   }
 
+  Future<void> backupDatabaseToTelegram(String botToken, String chatId) async {
+    try {
+      final response = await _dio.post('/backup-db', data: {
+        'botToken': botToken,
+        'chatId': chatId,
+      });
+      if (response.data['success'] != true) {
+        throw Exception(response.data['message'] ?? 'Failed to backup database');
+      }
+    } catch (e) {
+      if (e is DioException) {
+        throw Exception(e.response?.data['message'] ?? 'Failed to backup database');
+      }
+      throw Exception('Failed to backup database: $e');
+    }
+  }
+
   // --- Settings ---
 
   Future<Map<String, String>> getSettings() async {

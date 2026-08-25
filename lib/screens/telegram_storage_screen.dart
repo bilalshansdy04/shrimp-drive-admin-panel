@@ -127,6 +127,98 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
     );
   }
 
+  void _showBackupDatabaseDialog() {
+    final botTokenCtrl = TextEditingController();
+    final chatIdCtrl = TextEditingController();
+    bool isBackingUp = false;
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: AppColors.surfaceContainerHigh,
+              title: const Text('Backup Database to Telegram', style: TextStyle(color: AppColors.onSurface)),
+              content: SizedBox(
+                width: 400,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text(
+                      'This will dump all database tables into a JSON file and send it as a document to the specified Telegram channel.',
+                      style: TextStyle(color: AppColors.onSurfaceVariant),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: botTokenCtrl,
+                      style: const TextStyle(color: AppColors.onSurface),
+                      decoration: const InputDecoration(
+                        labelText: 'Bot Token',
+                        filled: true,
+                        fillColor: AppColors.surfaceContainer,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: chatIdCtrl,
+                      style: const TextStyle(color: AppColors.onSurface),
+                      decoration: const InputDecoration(
+                        labelText: 'Admin Chat ID',
+                        filled: true,
+                        fillColor: AppColors.surfaceContainer,
+                      ),
+                    ),
+                    if (isBackingUp) ...[
+                      const SizedBox(height: 16),
+                      const Center(child: CircularProgressIndicator()),
+                    ]
+                  ],
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: isBackingUp ? null : () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton.icon(
+                  onPressed: isBackingUp ? null : () async {
+                    setState(() => isBackingUp = true);
+                    try {
+                      await ref.read(apiServiceProvider).backupDatabaseToTelegram(
+                        botTokenCtrl.text,
+                        chatIdCtrl.text,
+                      );
+                      if (context.mounted) {
+                        Navigator.pop(context);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Database backed up successfully!')),
+                        );
+                      }
+                    } catch (e) {
+                      if (context.mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Backup failed: $e')),
+                        );
+                      }
+                    } finally {
+                      if (context.mounted) {
+                        setState(() => isBackingUp = false);
+                      }
+                    }
+                  },
+                  icon: const Icon(Icons.cloud_upload, size: 18),
+                  label: const Text('Backup Now'),
+                )
+              ],
+            );
+          }
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final nodesAsync = ref.watch(telegramNodesProvider);
@@ -165,16 +257,32 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
                     ),
                   ],
                 ),
-                FilledButton.icon(
-                  onPressed: () => _showNodeFormDialog(),
-                  icon: const Icon(Icons.add, size: 18),
-                  label: const Text('Add New Storage', style: TextStyle(fontWeight: FontWeight.bold)),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: AppColors.primaryContainer,
-                    foregroundColor: AppColors.surface,
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                  ),
+                Row(
+                  children: [
+                    FilledButton.icon(
+                      onPressed: () => _showBackupDatabaseDialog(),
+                      icon: const Icon(Icons.backup, size: 18),
+                      label: const Text('Backup DB', style: TextStyle(fontWeight: FontWeight.bold)),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.surfaceContainerHigh,
+                        foregroundColor: AppColors.primary,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    FilledButton.icon(
+                      onPressed: () => _showNodeFormDialog(),
+                      icon: const Icon(Icons.add, size: 18),
+                      label: const Text('Add New Storage', style: TextStyle(fontWeight: FontWeight.bold)),
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppColors.primaryContainer,
+                        foregroundColor: AppColors.surface,
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
