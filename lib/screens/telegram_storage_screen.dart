@@ -131,6 +131,7 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
     final botTokenCtrl = TextEditingController();
     final chatIdCtrl = TextEditingController();
     bool isBackingUp = false;
+    String? selectedNodeId;
 
     showDialog(
       context: context,
@@ -138,6 +139,7 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
       builder: (context) {
         return StatefulBuilder(
           builder: (context, setState) {
+            final nodesAsync = ref.watch(telegramNodesProvider);
             return AlertDialog(
               backgroundColor: AppColors.surfaceContainerHigh,
               title: const Text('Backup Database to Telegram', style: TextStyle(color: AppColors.onSurface)),
@@ -151,25 +153,47 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
                       style: TextStyle(color: AppColors.onSurfaceVariant),
                     ),
                     const SizedBox(height: 16),
-                    TextField(
-                      controller: botTokenCtrl,
-                      style: const TextStyle(color: AppColors.onSurface),
-                      decoration: const InputDecoration(
-                        labelText: 'Bot Token',
-                        filled: true,
-                        fillColor: AppColors.surfaceContainer,
-                      ),
+                    nodesAsync.maybeWhen(
+                      data: (nodes) {
+                        return DropdownButton<String?>(
+                          value: selectedNodeId,
+                          isExpanded: true,
+                          hint: const Text('Select Target Node', style: TextStyle(color: AppColors.onSurfaceVariant)),
+                          dropdownColor: AppColors.surfaceContainerHigh,
+                          style: const TextStyle(color: AppColors.onSurface),
+                          items: [
+                            const DropdownMenuItem(value: null, child: Text('Custom (Enter manually)')),
+                            ...nodes.map((n) => DropdownMenuItem(value: n.id, child: Text(n.name))),
+                          ],
+                          onChanged: (val) {
+                            setState(() => selectedNodeId = val);
+                          },
+                        );
+                      },
+                      orElse: () => const SizedBox(),
                     ),
-                    const SizedBox(height: 12),
-                    TextField(
-                      controller: chatIdCtrl,
-                      style: const TextStyle(color: AppColors.onSurface),
-                      decoration: const InputDecoration(
-                        labelText: 'Admin Chat ID',
-                        filled: true,
-                        fillColor: AppColors.surfaceContainer,
+                    if (selectedNodeId == null) ...[
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: botTokenCtrl,
+                        style: const TextStyle(color: AppColors.onSurface),
+                        decoration: const InputDecoration(
+                          labelText: 'Bot Token',
+                          filled: true,
+                          fillColor: AppColors.surfaceContainer,
+                        ),
                       ),
-                    ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: chatIdCtrl,
+                        style: const TextStyle(color: AppColors.onSurface),
+                        decoration: const InputDecoration(
+                          labelText: 'Admin Chat ID',
+                          filled: true,
+                          fillColor: AppColors.surfaceContainer,
+                        ),
+                      ),
+                    ],
                     if (isBackingUp) ...[
                       const SizedBox(height: 16),
                       const Center(child: CircularProgressIndicator()),
@@ -187,8 +211,9 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
                     setState(() => isBackingUp = true);
                     try {
                       await ref.read(apiServiceProvider).backupDatabaseToTelegram(
-                        botTokenCtrl.text,
-                        chatIdCtrl.text,
+                        nodeId: selectedNodeId,
+                        botToken: selectedNodeId == null ? botTokenCtrl.text : null,
+                        chatId: selectedNodeId == null ? chatIdCtrl.text : null,
                       );
                       if (context.mounted) {
                         Navigator.pop(context);
