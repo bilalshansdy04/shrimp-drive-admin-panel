@@ -247,11 +247,18 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
 
   void _showRestoreDatabaseDialog() async {
     // We use flutter_file_picker to pick the JSON
-    
-    FilePickerResult? result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['json'],
-    );
+    FilePickerResult? result;
+    try {
+      result = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['json'],
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error picking file: $e')));
+      }
+      return;
+    }
 
     if (result != null && context.mounted) {
       final file = result.files.single;
@@ -337,9 +344,11 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Page Header
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.center,
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              runSpacing: 16,
+              spacing: 16,
               children: [
                 const Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -363,7 +372,9 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
                     ),
                   ],
                 ),
-                Row(
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
                   children: [
                     FilledButton.icon(
                       onPressed: () => _showRestoreDatabaseDialog(),
@@ -376,7 +387,6 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                       ),
                     ),
-                    const SizedBox(width: 12),
                     FilledButton.icon(
                       onPressed: () => _showBackupDatabaseDialog(),
                       icon: const Icon(Icons.backup, size: 18),
@@ -388,7 +398,6 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                       ),
                     ),
-                    const SizedBox(width: 12),
                     FilledButton.icon(
                       onPressed: () => _showNodeFormDialog(),
                       icon: const Icon(Icons.add, size: 18),
