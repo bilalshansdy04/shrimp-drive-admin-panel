@@ -261,16 +261,16 @@ class UserDetailPanel extends ConsumerWidget {
   }
 
   void _showEditStorageDialog(BuildContext context, WidgetRef ref, String userId, int currentBonusBytes) {
-    final controller = TextEditingController(text: (currentBonusBytes / 1073741824).toStringAsFixed(2)); // GB
+    final controller = TextEditingController(text: currentBonusBytes == -1 ? "-1" : (currentBonusBytes / 1073741824).toStringAsFixed(2)); // GB or -1
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.surfaceContainerHigh,
-          title: const Text('Edit Custom Storage Bonus (GB)', style: TextStyle(color: AppColors.onSurface)),
+          title: const Text('Edit Custom Storage Bonus (GB, -1 for Unlimited)', style: TextStyle(color: AppColors.onSurface)),
           content: TextField(
             controller: controller,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
             style: const TextStyle(color: AppColors.onSurface),
             decoration: const InputDecoration(
               filled: true,
@@ -285,7 +285,7 @@ class UserDetailPanel extends ConsumerWidget {
             FilledButton(
               onPressed: () {
                 final gb = double.tryParse(controller.text) ?? 0.0;
-                final bytes = (gb * 1073741824).toInt();
+                final bytes = gb == -1 ? -1 : (gb * 1073741824).toInt();
                 ref.read(usersProvider.notifier).updateCustomStorage(userId, bytes);
                 Navigator.pop(context);
               },

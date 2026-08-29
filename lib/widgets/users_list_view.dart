@@ -48,7 +48,8 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
                     style: TextStyle(
                       color: AppColors.onSurfaceVariant,
                       fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ),
@@ -59,7 +60,20 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
                     style: TextStyle(
                       color: AppColors.onSurfaceVariant,
                       fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'INVITE CODE',
+                    style: TextStyle(
+                      color: AppColors.onSurfaceVariant,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ),
@@ -73,7 +87,8 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
                         style: TextStyle(
                           color: AppColors.onSurfaceVariant,
                           fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
                         ),
                       ),
                       Text(
@@ -81,7 +96,8 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
                         style: TextStyle(
                           color: AppColors.onSurfaceVariant,
                           fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
                         ),
                       ),
                     ],
@@ -118,6 +134,7 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
                             false, // You can implement selection state if needed
                         email: user.email ?? user.username,
                         id: user.id,
+                        invitationCodeUsed: user.invitationCodeUsed,
                         status: user.isActive ? 'Active' : 'Deactivated',
                         statusColor:
                             user.isActive ? AppColors.primary : AppColors.error,
@@ -152,6 +169,7 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
     required bool isSelected,
     required String email,
     required String id,
+    String? invitationCodeUsed,
     required String status,
     required Color statusColor,
     required Color statusBgColor,
@@ -251,6 +269,18 @@ class _UsersListViewState extends ConsumerState<UsersListView> {
                           ),
                         ],
                       ),
+                    ),
+                  ),
+                ),
+                // Invitation Code
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    invitationCodeUsed ?? '-',
+                    style: const TextStyle(
+                      color: AppColors.onSurfaceVariant,
+                      fontSize: 14,
+                      fontFamily: 'monospace',
                     ),
                   ),
                 ),

@@ -5,6 +5,7 @@ class User {
   final String? email;
   final String? encryptionMode;
   final String? telegramNodeId;
+  final String? invitationCodeUsed;
   final int storageUsed;
   final int storageLimit;
   final int baseStorage;
@@ -21,6 +22,7 @@ class User {
     this.email,
     this.encryptionMode,
     this.telegramNodeId,
+    this.invitationCodeUsed,
     required this.storageUsed,
     required this.storageLimit,
     required this.baseStorage,
@@ -39,6 +41,7 @@ class User {
       email: json['email'],
       encryptionMode: json['encryptionMode'],
       telegramNodeId: json['telegramNodeId'],
+      invitationCodeUsed: json['invitationCodeUsed'],
       storageUsed: json['storageUsed'] ?? 0,
       storageLimit: json['storageLimit'] ?? 0,
       baseStorage: json['baseStorage'] ?? 0,
@@ -58,6 +61,7 @@ class User {
       'email': email,
       'encryptionMode': encryptionMode,
       'telegramNodeId': telegramNodeId,
+      'invitationCodeUsed': invitationCodeUsed,
       'storageUsed': storageUsed,
       'storageLimit': storageLimit,
       'baseStorage': baseStorage,

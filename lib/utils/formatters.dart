@@ -2,6 +2,7 @@ import 'dart:math';
 
 class Formatters {
   static String formatBytes(num bytes, {int decimals = 2}) {
+    if (bytes == -1) return "Unlimited";
     if (bytes <= 0) return "0 B";
     const suffixes = ["B", "KB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"];
     var i = (log(bytes) / log(1024)).floor();

@@ -141,7 +141,10 @@ class InvitationCodesTable extends ConsumerWidget {
                 color: AppColors.onSurfaceVariant,
                 hoverColor: Colors.transparent,
                 highlightColor: Colors.transparent,
-                onPressed: () {},
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: code.code));
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Invitation Code copied!')));
+                },
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(),
               ),

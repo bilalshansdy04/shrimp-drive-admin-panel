@@ -39,7 +39,7 @@ class _InvitationCodeFormDialogState extends ConsumerState<InvitationCodeFormDia
     
     if (widget.existingCode != null) {
       _selectedNodeId = widget.existingCode!.assignedNodeId;
-      _isLimitless = widget.existingCode!.bonusAmount == null || widget.existingCode!.bonusAmount == 0;
+      _isLimitless = widget.existingCode!.bonusAmount == null || widget.existingCode!.bonusAmount == -1;
       if (!_isLimitless) {
         _bonusAmountGB = (widget.existingCode!.bonusAmount! / (1024 * 1024 * 1024)).toStringAsFixed(0);
       } else {
@@ -70,7 +70,7 @@ class _InvitationCodeFormDialogState extends ConsumerState<InvitationCodeFormDia
         final gb = double.tryParse(_bonusAmountGB) ?? 0;
         data['bonusAmount'] = (gb * 1024 * 1024 * 1024).toInt(); // Convert GB to Bytes
       } else {
-        data['bonusAmount'] = 0; // Limitless
+        data['bonusAmount'] = -1; // Limitless
       }
 
       if (widget.existingCode == null) {
