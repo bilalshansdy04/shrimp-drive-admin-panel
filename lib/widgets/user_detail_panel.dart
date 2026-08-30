@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
 import '../providers/users_provider.dart';
 import '../utils/formatters.dart';
+import '../models/user_model.dart';
 
 class UserDetailPanel extends ConsumerWidget {
   const UserDetailPanel({super.key});
@@ -221,14 +222,14 @@ class UserDetailPanel extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               _buildActionRow(
-                title: 'Reset Password',
-                subtitle: 'Force password reset',
-                icon: Icons.lock_reset,
-                hoverColor: AppColors.secondary,
-                onTap: () {
-                  _showResetPasswordDialog(context, ref, user.id);
-                }
-              ),
+                  title: user.googleId != null ? 'Reset PIN' : 'Reset Password',
+                  subtitle: user.googleId != null ? 'Force PIN reset (Warning: Breaks Encryption)' : 'Force password reset (Warning: Breaks Encryption)',
+                  icon: Icons.lock_reset,
+                  hoverColor: AppColors.secondary,
+                  onTap: () {
+                    _showResetPasswordDialog(context, ref, user);
+                  }
+                ),
               
               const SizedBox(height: 16),
               const Divider(color: AppColors.outline, height: 1),
@@ -297,32 +298,43 @@ class UserDetailPanel extends ConsumerWidget {
     );
   }
 
-  void _showResetPasswordDialog(BuildContext context, WidgetRef ref, String userId) {
+  void _showResetPasswordDialog(BuildContext context, WidgetRef ref, User user) {
     final controller = TextEditingController();
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           backgroundColor: AppColors.surfaceContainerHigh,
-          title: const Text('Reset Password', style: TextStyle(color: AppColors.onSurface)),
-          content: TextField(
-            controller: controller,
-            obscureText: true,
-            style: const TextStyle(color: AppColors.onSurface),
-            decoration: const InputDecoration(
-              hintText: 'New Password',
-              filled: true,
-              fillColor: AppColors.surfaceContainer,
-            ),
+          title: Text(user.googleId != null ? 'Reset PIN' : 'Reset Password', style: const TextStyle(color: AppColors.onSurface)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'WARNING: Forcing a reset here will BREAK the user\'s encryption. They will lose access to all their encrypted files permanently unless they have a Recovery Phrase.',
+                style: TextStyle(color: AppColors.error, fontSize: 13),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                obscureText: true,
+                style: const TextStyle(color: AppColors.onSurface),
+                decoration: InputDecoration(
+                  hintText: user.googleId != null ? 'New PIN' : 'New Password',
+                  filled: true,
+                  fillColor: AppColors.surfaceContainer,
+                ),
+              ),
+            ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: const Text('Cancel', style: TextStyle(color: AppColors.onSurfaceVariant)),
             ),
             FilledButton(
               onPressed: () {
-                ref.read(usersProvider.notifier).resetPassword(userId, controller.text);
+                ref.read(usersProvider.notifier).resetPassword(user.id, controller.text);
                 Navigator.pop(context);
               },
               child: const Text('Reset'),
@@ -346,11 +358,14 @@ class UserDetailPanel extends ConsumerWidget {
           ),
         ),
         const SizedBox(width: 8),
-        Text(
-          label,
-          style: const TextStyle(
-            color: AppColors.onSurfaceVariant,
-            fontSize: 12,
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(
+              color: AppColors.onSurfaceVariant,
+              fontSize: 12,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],
@@ -376,26 +391,30 @@ class UserDetailPanel extends ConsumerWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: AppColors.onSurface,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: AppColors.onSurface,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
-                ),
-                Text(
-                  subtitle,
-                  style: const TextStyle(
-                    color: AppColors.onSurfaceVariant,
-                    fontSize: 10,
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle,
+                    style: const TextStyle(
+                      color: AppColors.onSurfaceVariant,
+                      fontSize: 10,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
+            const SizedBox(width: 16),
             Icon(icon, color: AppColors.onSurfaceVariant, size: 20),
           ],
         ),
