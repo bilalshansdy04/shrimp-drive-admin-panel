@@ -36,6 +36,8 @@ dependencies:
   # --- [ UI & Icons ] ---
   lucide_icons: ^0.257.0
   shadcn_ui: ^0.12.0 # Opsional: jika ingin komponen UI shadcn siap pakai
+  shared_preferences: ^2.5.5
+  file_picker: ^11.0.3
 
 dev_dependencies:
   flutter_test:
@@ -43,6 +45,13 @@ dev_dependencies:
   flutter_lints: ^4.0.0
   build_runner: ^2.4.9
   riverpod_generator: ^2.4.0
+  msix: ^3.18.0
 
 flutter:
   uses-material-design: true
+
+msix:
+  display_name: Shrimp Drive Admin
+  publisher_display_name: Shrimp Drive
+  identity_name: ShrimpDrive.Admin
+  version: 1.0.0.0

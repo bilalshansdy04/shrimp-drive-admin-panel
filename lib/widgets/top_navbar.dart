@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
+import '../providers/api_provider.dart';
 
-class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
+class TopNavBar extends ConsumerWidget implements PreferredSizeWidget {
   const TopNavBar({super.key});
 
   @override
   Size get preferredSize => const Size.fromHeight(64.0); // h-16
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       height: 64,
       decoration: const BoxDecoration(
@@ -31,23 +33,23 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
               border: Border.all(color: AppColors.outline),
             ),
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Row(
+            child: const Row(
               children: [
-                const Icon(
+                Icon(
                   Icons.search,
                   color: AppColors.onSurfaceVariant,
                   size: 20,
                 ),
-                const SizedBox(width: 8),
+                SizedBox(width: 8),
                 Expanded(
                   child: TextField(
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: AppColors.onSurface,
                       fontSize: 14,
                     ),
                     decoration: InputDecoration(
                       hintText: 'Search users, files, codes...',
-                      hintStyle: const TextStyle(
+                      hintStyle: TextStyle(
                         color: AppColors.onSurfaceVariant,
                         fontSize: 14,
                       ),
@@ -85,6 +87,17 @@ class TopNavBar extends StatelessWidget implements PreferredSizeWidget {
                 ),
               ),
               const SizedBox(width: 24),
+              
+              // Refresh Button
+              IconButton(
+                onPressed: () {
+                  // Invalidate providers to trigger global refresh
+                  ref.invalidate(apiServiceProvider);
+                },
+                icon: const Icon(Icons.refresh, color: AppColors.onSurface),
+                splashRadius: 20,
+              ),
+              const SizedBox(width: 8),
               
               // Notifications
               Stack(

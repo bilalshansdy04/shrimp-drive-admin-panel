@@ -1,11 +1,82 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/api_provider.dart';
 import '../theme/app_theme.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
 
   @override
+  ConsumerState<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends ConsumerState<SettingsScreen> {
+  bool _isLoading = true;
+  String? _errorMsg;
+
+  // General Settings State
+  final _baseStorageController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    setState(() {
+      _isLoading = true;
+      _errorMsg = null;
+    });
+    try {
+      final api = ref.read(apiServiceProvider);
+      final settings = await api.getSettings();
+
+      if (settings.containsKey('default_base_storage')) {
+        // convert bytes to GB for display
+        final bytes = int.tryParse(settings['default_base_storage']!) ?? 8589934592;
+        final gb = bytes ~/ (1024 * 1024 * 1024);
+        _baseStorageController.text = gb.toString();
+      } else {
+        _baseStorageController.text = '8';
+      }
+    } catch (e) {
+      setState(() => _errorMsg = e.toString());
+    } finally {
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _saveGeneralSettings() async {
+    final api = ref.read(apiServiceProvider);
+    try {
+      final gb = int.tryParse(_baseStorageController.text) ?? 8;
+      final bytes = gb * 1024 * 1024 * 1024;
+      
+      await api.updateSettings({
+        'default_base_storage': bytes.toString(),
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Settings saved successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save settings: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     return Padding(
       padding: const EdgeInsets.all(24),
       child: ConstrainedBox(
@@ -25,15 +96,18 @@ class SettingsScreen extends StatelessWidget {
               child: SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    _SettingsHeader(),
-                    SizedBox(height: 32),
-                    _DatabaseConfigSection(),
-                    SizedBox(height: 32),
-                    _SecuritySection(),
-                    SizedBox(height: 32),
-                    _PreferencesSection(),
-                    SizedBox(height: 32),
+                  children: [
+                    const _SettingsHeader(),
+                    const SizedBox(height: 32),
+                    if (_errorMsg != null)
+                      Text('Error loading settings: $_errorMsg', style: const TextStyle(color: AppColors.error)),
+                    _GeneralSettingsSection(
+                      baseStorageController: _baseStorageController,
+                      onSave: _saveGeneralSettings,
+                    ),
+                    const SizedBox(height: 32),
+                    const _PreferencesSection(),
+                    const SizedBox(height: 32),
                   ],
                 ),
               ),
@@ -64,7 +138,7 @@ class _SettingsHeader extends StatelessWidget {
         ),
         SizedBox(height: 8),
         Text(
-          'Manage your admin panel preferences and connections.',
+          'Manage global application settings and admin panel preferences.',
           style: TextStyle(
             color: AppColors.onSurfaceVariant,
             fontSize: 16,
@@ -84,15 +158,9 @@ class _SettingsNavigation extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildNavItem(
-          icon: Icons.storage,
-          label: 'Database Configuration',
+          icon: Icons.settings,
+          label: 'General Settings',
           isActive: true,
-        ),
-        const SizedBox(height: 4),
-        _buildNavItem(
-          icon: Icons.security,
-          label: 'Security & Authentication',
-          isActive: false,
         ),
         const SizedBox(height: 4),
         _buildNavItem(
@@ -223,185 +291,25 @@ class _SectionContainer extends StatelessWidget {
   }
 }
 
-// Reusable TextField
-Widget _buildTextField({
-  required String label,
-  required String hint,
-  IconData? prefixIcon,
-  Widget? suffixIcon,
-  bool isPassword = false,
-  bool isMonospace = false,
-}) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        label,
-        style: const TextStyle(
-          color: AppColors.onSurfaceVariant,
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          letterSpacing: 1.5,
-        ),
-      ),
-      const SizedBox(height: 8),
-      TextField(
-        obscureText: isPassword,
-        style: TextStyle(
-          color: AppColors.onSurface,
-          fontSize: 14,
-          fontFamily: isMonospace ? 'monospace' : null,
-        ),
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: TextStyle(
-            color: AppColors.onSurfaceVariant.withValues(alpha: 0.5),
-            fontSize: 14,
-          ),
-          prefixIcon: prefixIcon != null ? Icon(prefixIcon, color: AppColors.onSurfaceVariant, size: 18) : null,
-          suffixIcon: suffixIcon,
-          filled: true,
-          fillColor: AppColors.surface, // surface-dim
-          contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4),
-            borderSide: const BorderSide(color: AppColors.outline),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(4),
-            borderSide: const BorderSide(color: AppColors.primaryContainer), // Glow color in HTML
-          ),
-        ),
-      ),
-    ],
-  );
-}
+class _GeneralSettingsSection extends StatelessWidget {
+  final TextEditingController baseStorageController;
+  final VoidCallback onSave;
 
-class _DatabaseConfigSection extends StatelessWidget {
-  const _DatabaseConfigSection();
+  const _GeneralSettingsSection({
+    required this.baseStorageController,
+    required this.onSave,
+  });
 
   @override
   Widget build(BuildContext context) {
     return _SectionContainer(
-      title: 'Database Configuration',
-      subtitle: 'Manage your central Turso database connection.',
-      content: Column(
-        children: [
-          _buildTextField(
-            label: 'DATABASE URL',
-            hint: 'libsql://...',
-            prefixIcon: Icons.link,
-          ),
-          const SizedBox(height: 16),
-          _buildTextField(
-            label: 'AUTHENTICATION TOKEN',
-            hint: '••••••••',
-            prefixIcon: Icons.key,
-            isPassword: true,
-            isMonospace: true,
-            suffixIcon: IconButton(
-              icon: const Icon(Icons.visibility, size: 18, color: AppColors.onSurfaceVariant),
-              onPressed: () {},
-            ),
-          ),
-        ],
-      ),
-      action: FilledButton(
-        onPressed: () {},
-        style: FilledButton.styleFrom(
-          backgroundColor: AppColors.primaryContainer,
-          foregroundColor: AppColors.surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-        ),
-        child: const Text('Save Configuration', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-    );
-  }
-}
-
-class _SecuritySection extends StatelessWidget {
-  const _SecuritySection();
-
-  @override
-  Widget build(BuildContext context) {
-    return _SectionContainer(
-      title: 'Security & Authentication',
-      subtitle: 'Update your admin credentials.',
-      content: Column(
-        children: [
-          _buildTextField(
-            label: 'CURRENT PASSWORD',
-            hint: '••••••••',
-            isPassword: true,
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: _buildTextField(
-                  label: 'NEW PASSWORD',
-                  hint: '••••••••',
-                  isPassword: true,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _buildTextField(
-                  label: 'CONFIRM NEW PASSWORD',
-                  hint: '••••••••',
-                  isPassword: true,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      action: FilledButton(
-        onPressed: () {},
-        style: FilledButton.styleFrom(
-          backgroundColor: AppColors.primaryContainer,
-          foregroundColor: AppColors.surface,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-        ),
-        child: const Text('Update Security', style: TextStyle(fontWeight: FontWeight.bold)),
-      ),
-    );
-  }
-}
-
-class _PreferencesSection extends StatelessWidget {
-  const _PreferencesSection();
-
-  @override
-  Widget build(BuildContext context) {
-    return _SectionContainer(
-      title: 'System Preferences',
-      subtitle: 'Customize the admin console experience.',
+      title: 'General Settings',
+      subtitle: 'Manage global configurations for Shrimp Drive users.',
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'INTERFACE THEME',
-            style: TextStyle(
-              color: AppColors.onSurfaceVariant,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 1.5,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: _buildThemeCard(title: 'Dark Mode', icon: Icons.dark_mode, isSelected: true)),
-              const SizedBox(width: 16),
-              Expanded(child: _buildThemeCard(title: 'Light Mode', icon: Icons.light_mode, isSelected: false)),
-            ],
-          ),
-          const SizedBox(height: 24),
-          const Divider(color: AppColors.outline),
-          const SizedBox(height: 24),
-          const Text(
-            'DISPLAY LANGUAGE',
+            'DEFAULT BASE STORAGE (GB)',
             style: TextStyle(
               color: AppColors.onSurfaceVariant,
               fontSize: 12,
@@ -410,63 +318,132 @@ class _PreferencesSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 8),
-          // We can use DropdownButtonFormField or just a stylized container to mock it up
-          SizedBox(
-            width: 300,
-            child: DropdownButtonFormField<String>(
-              value: 'en',
-              icon: const Icon(Icons.arrow_drop_down, color: AppColors.onSurfaceVariant),
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.language, color: AppColors.onSurfaceVariant, size: 18),
-                filled: true,
-                fillColor: AppColors.surface,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
-                  borderSide: const BorderSide(color: AppColors.outline),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
-                  borderSide: const BorderSide(color: AppColors.primaryContainer),
-                ),
-              ),
-              dropdownColor: AppColors.surfaceContainerHigh,
-              style: const TextStyle(color: AppColors.onSurface, fontSize: 14),
-              items: const [
-                DropdownMenuItem(value: 'en', child: Text('English')),
-                DropdownMenuItem(value: 'id', child: Text('Indonesia')),
-              ],
-              onChanged: (val) {},
-            ),
-          ),
-        ],
-      ),
-      action: const SizedBox(), // No action button required for preferences in design
-    );
-  }
-
-  Widget _buildThemeCard({required String title, required IconData icon, required bool isSelected}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: isSelected ? AppColors.surfaceContainer : AppColors.surface,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: isSelected ? AppColors.primary : AppColors.outline),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 32, color: isSelected ? AppColors.primary : AppColors.onSurfaceVariant),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: TextStyle(
+          TextField(
+            controller: baseStorageController,
+            style: const TextStyle(
               color: AppColors.onSurface,
               fontSize: 14,
-              fontWeight: FontWeight.w500,
             ),
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              hintText: 'e.g. 8',
+              hintStyle: TextStyle(
+                color: AppColors.onSurfaceVariant.withValues(alpha: 0.5),
+                fontSize: 14,
+              ),
+              prefixIcon: const Icon(Icons.storage, color: AppColors.onSurfaceVariant, size: 18),
+              suffixText: 'GB',
+              filled: true,
+              fillColor: AppColors.surface, // surface-dim
+              contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(4),
+                borderSide: const BorderSide(color: AppColors.outline),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(4),
+                borderSide: const BorderSide(color: AppColors.primaryContainer), // Glow color in HTML
+              ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'This applies to all new users when they register.',
+            style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12),
           ),
         ],
       ),
+      action: FilledButton(
+        onPressed: onSave,
+        style: FilledButton.styleFrom(
+          backgroundColor: AppColors.primaryContainer,
+          foregroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+        ),
+        child: const Text('Save Settings', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
+    );
+  }
+}
+
+class _PreferencesSection extends ConsumerStatefulWidget {
+  const _PreferencesSection();
+
+  @override
+  ConsumerState<_PreferencesSection> createState() => _PreferencesSectionState();
+}
+
+class _PreferencesSectionState extends ConsumerState<_PreferencesSection> {
+  final _apiUrlController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _apiUrlController.text = ref.read(apiServiceProvider).currentApiUrl;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return _SectionContainer(
+      title: 'System Preferences',
+      subtitle: 'Customize the admin console experience (Local to this device).',
+      content: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            'API BASE URL',
+            style: TextStyle(
+              color: AppColors.onSurfaceVariant,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _apiUrlController,
+                  style: const TextStyle(color: AppColors.onSurface, fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: 'https://...',
+                    prefixIcon: const Icon(Icons.link, color: AppColors.onSurfaceVariant, size: 18),
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: AppColors.outline),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: AppColors.primaryContainer),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              OutlinedButton(
+                onPressed: () async {
+                  await ref.read(apiServiceProvider).updateApiUrl(_apiUrlController.text.trim());
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('API URL updated. You may need to login again.')));
+                  }
+                },
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                ),
+                child: const Text('Apply'),
+              ),
+            ],
+          ),
+        ],
+      ),
+      action: const SizedBox(), 
     );
   }
 }

@@ -7,6 +7,11 @@ class StorageCard extends StatelessWidget {
   final String botToken;
   final String chatId;
   final bool isConnected;
+  final bool isGlobal;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+
+  final VoidCallback? onTestConnection;
 
   const StorageCard({
     super.key,
@@ -15,6 +20,10 @@ class StorageCard extends StatelessWidget {
     required this.botToken,
     required this.chatId,
     this.isConnected = true,
+    this.isGlobal = false,
+    this.onEdit,
+    this.onDelete,
+    this.onTestConnection,
   });
 
   @override
@@ -28,7 +37,7 @@ class StorageCard extends StatelessWidget {
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          onTap: () {},
+          onTap: onEdit,
           hoverColor: AppColors.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(8),
           child: Padding(
@@ -57,14 +66,36 @@ class StorageCard extends StatelessWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              title,
-                              style: const TextStyle(
-                                color: AppColors.onSurface,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 1.5,
-                              ),
+                            Row(
+                              children: [
+                                Text(
+                                  title,
+                                  style: const TextStyle(
+                                    color: AppColors.onSurface,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    letterSpacing: 1.5,
+                                  ),
+                                ),
+                                if (isGlobal) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryContainer,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text(
+                                      'GLOBAL',
+                                      style: TextStyle(
+                                        color: AppColors.primary,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                             const SizedBox(height: 4),
                             Row(
@@ -77,7 +108,7 @@ class StorageCard extends StatelessWidget {
                                     shape: BoxShape.circle,
                                     boxShadow: [
                                       BoxShadow(
-                                        color: (isConnected ? AppColors.secondary : AppColors.error).withOpacity(0.5),
+                                        color: (isConnected ? AppColors.secondary : AppColors.error).withValues(alpha: 0.5),
                                         blurRadius: 4,
                                       )
                                     ],
@@ -99,9 +130,9 @@ class StorageCard extends StatelessWidget {
                       ],
                     ),
                     IconButton(
-                      icon: const Icon(Icons.more_vert, size: 20),
+                      icon: const Icon(Icons.edit, size: 20),
                       color: AppColors.onSurfaceVariant,
-                      onPressed: () {},
+                      onPressed: onEdit,
                       padding: EdgeInsets.zero,
                       constraints: const BoxConstraints(),
                     ),
@@ -123,7 +154,7 @@ class StorageCard extends StatelessWidget {
                     Expanded(
                       flex: 3,
                       child: OutlinedButton.icon(
-                        onPressed: () {},
+                        onPressed: onTestConnection,
                         icon: const Icon(Icons.network_check, size: 16),
                         label: const Text('Test Connection'),
                         style: OutlinedButton.styleFrom(
@@ -139,7 +170,7 @@ class StorageCard extends StatelessWidget {
                     Expanded(
                       flex: 1,
                       child: OutlinedButton(
-                        onPressed: () {},
+                        onPressed: onDelete,
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.error,
                           side: const BorderSide(color: AppColors.error),

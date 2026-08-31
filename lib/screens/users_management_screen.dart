@@ -52,7 +52,7 @@ class UsersManagementScreen extends StatelessWidget {
                         style: const TextStyle(color: AppColors.onSurface, fontSize: 14),
                         decoration: InputDecoration(
                           hintText: 'Search users by ID or email...',
-                          hintStyle: TextStyle(color: AppColors.onSurfaceVariant.withOpacity(0.5), fontSize: 14),
+                          hintStyle: TextStyle(color: AppColors.onSurfaceVariant.withValues(alpha: 0.5), fontSize: 14),
                           prefixIcon: const Icon(Icons.search, color: AppColors.onSurfaceVariant, size: 20),
                           filled: true,
                           fillColor: AppColors.surfaceContainer,
@@ -68,21 +68,6 @@ class UsersManagementScreen extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(width: 16),
-                    OutlinedButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.filter_list, size: 18),
-                      label: const Text('Filter'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.onSurface,
-                        backgroundColor: AppColors.surfaceContainer,
-                        side: const BorderSide(color: AppColors.outline),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                        minimumSize: const Size(0, 40),
-                        textStyle: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                      ),
-                    ),
                   ],
                 ),
               ],
@@ -90,18 +75,18 @@ class UsersManagementScreen extends StatelessWidget {
             const SizedBox(height: 24),
             
             // Bento Layout: Master-Detail
-            Expanded(
+            const Expanded(
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // MASTER VIEW (Spans 8 of 12 columns conceptually -> flex: 8)
-                  const Expanded(
+                  Expanded(
                     flex: 8,
                     child: UsersListView(),
                   ),
-                  const SizedBox(width: 20),
+                  SizedBox(width: 20),
                   // DETAIL VIEW (Spans 4 of 12 columns conceptually -> flex: 4)
-                  const Expanded(
+                  Expanded(
                     flex: 4,
                     child: SingleChildScrollView(
                       child: UserDetailPanel(),

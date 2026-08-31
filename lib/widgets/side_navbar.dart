@@ -52,7 +52,7 @@ class SideNavBar extends StatelessWidget {
                     Text(
                       'ADMIN CONSOLE',
                       style: TextStyle(
-                        color: AppColors.onSurfaceVariant.withOpacity(0.8),
+                        color: AppColors.onSurfaceVariant.withValues(alpha: 0.8),
                         fontSize: 10,
                         fontWeight: FontWeight.w500,
                         letterSpacing: 1.5,

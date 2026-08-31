@@ -1,12 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../theme/app_theme.dart';
-import 'pagination_footer.dart';
+import '../providers/users_provider.dart';
+import '../utils/formatters.dart';
 
-class UsersListView extends StatelessWidget {
+class UsersListView extends ConsumerStatefulWidget {
   const UsersListView({super.key});
 
   @override
+  ConsumerState<UsersListView> createState() => _UsersListViewState();
+}
+
+class _UsersListViewState extends ConsumerState<UsersListView> {
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() => ref.read(usersProvider.notifier).build());
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final usersAsync = ref.watch(usersProvider);
+
     return Container(
       decoration: BoxDecoration(
         color: AppColors.surfaceContainer,
@@ -33,41 +48,59 @@ class UsersListView extends StatelessWidget {
                     style: TextStyle(
                       color: AppColors.onSurfaceVariant,
                       fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Text(
-                    'ACCESS TYPE',
-                    style: TextStyle(
-                      color: AppColors.onSurfaceVariant,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ),
                 Expanded(
                   flex: 2,
                   child: Text(
-                    'ENCRYPTION',
+                    'STATUS',
                     style: TextStyle(
                       color: AppColors.onSurfaceVariant,
                       fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  flex: 2,
+                  child: Text(
+                    'INVITE CODE',
+                    style: TextStyle(
+                      color: AppColors.onSurfaceVariant,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.5,
                     ),
                   ),
                 ),
                 Expanded(
                   flex: 4,
-                  child: Text(
-                    'QUOTA USED',
-                    style: TextStyle(
-                      color: AppColors.onSurfaceVariant,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'QUOTA USED',
+                        style: TextStyle(
+                          color: AppColors.onSurfaceVariant,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      Text(
+                        'QUOTA TOTAL',
+                        style: TextStyle(
+                          color: AppColors.onSurfaceVariant,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -75,65 +108,57 @@ class UsersListView extends StatelessWidget {
           ),
           // Body List
           Expanded(
-            child: ListView(
-              children: [
-                _buildRow(
-                  isSelected: true,
-                  email: 'alex.mercer@corp.net',
-                  id: 'USR-8829-X',
-                  accessType: 'Premium Bot',
-                  accessTypeColor: AppColors.secondary,
-                  accessTypeBgColor: AppColors.secondary.withOpacity(0.1),
-                  accessTypeBorderColor: AppColors.secondary.withOpacity(0.2),
-                  encryptionIcon: Icons.lock,
-                  encryptionText: 'AES-256',
-                  quotaUsed: '85.4 GB',
-                  quotaMax: '100 GB',
-                  quotaProgress: 0.854,
-                  quotaColor: AppColors.primary,
-                ),
-                _buildRow(
-                  isSelected: false,
-                  email: 'sarah.j@studio.io',
-                  id: 'USR-4412-M',
-                  accessType: 'Standard Web',
-                  accessTypeColor: AppColors.onSurfaceVariant,
-                  accessTypeBgColor: AppColors.surfaceVariant,
-                  accessTypeBorderColor: AppColors.outline,
-                  encryptionIcon: Icons.lock_open,
-                  encryptionText: 'None',
-                  quotaUsed: '12.1 GB',
-                  quotaMax: '50 GB',
-                  quotaProgress: 0.242,
-                  quotaColor: AppColors.secondary, // Gradient in HTML, solid here for simplicity or we can build gradient
-                  isGradient: true,
-                ),
-                _buildRow(
-                  isSelected: false,
-                  email: 'm.vasquez@temp.org',
-                  id: 'USR-9901-Z',
-                  accessType: 'Suspended',
-                  accessTypeColor: AppColors.error,
-                  accessTypeBgColor: AppColors.error.withOpacity(0.1),
-                  accessTypeBorderColor: AppColors.error.withOpacity(0.2),
-                  encryptionIcon: Icons.lock,
-                  encryptionText: 'AES-256',
-                  quotaUsed: '50.0 GB',
-                  quotaMax: '50 GB',
-                  quotaProgress: 1.0,
-                  quotaColor: AppColors.error,
-                  isStrikethrough: true,
-                ),
-              ],
+            child: usersAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator()),
+              error: (err, stack) => Center(
+                  child: Text('Error: $err',
+                      style: const TextStyle(color: Colors.red))),
+              data: (users) {
+                if (users.isEmpty) {
+                  return const Center(
+                      child: Text('No users found',
+                          style: TextStyle(color: AppColors.onSurfaceVariant)));
+                }
+                return ListView.builder(
+                  itemCount: users.length,
+                  itemBuilder: (context, index) {
+                    final user = users[index];
+                    final quotaUsed = Formatters.formatBytes(user.storageUsed);
+                    final quotaMax = Formatters.formatBytes(user.storageLimit);
+                    final quotaProgress = user.storageLimit > 0
+                        ? (user.storageUsed / user.storageLimit).clamp(0.0, 1.0)
+                        : 0.0;
+
+                    return _buildRow(
+                        isSelected:
+                            false, // You can implement selection state if needed
+                        email: user.email ?? user.username,
+                        id: user.id,
+                        invitationCodeUsed: user.invitationCodeUsed,
+                        status: user.isActive ? 'Active' : 'Deactivated',
+                        statusColor:
+                            user.isActive ? AppColors.primary : AppColors.error,
+                        statusBgColor: user.isActive
+                            ? AppColors.primary.withValues(alpha: 0.1)
+                            : AppColors.error.withValues(alpha: 0.1),
+                        statusBorderColor: user.isActive
+                            ? AppColors.primary.withValues(alpha: 0.2)
+                            : AppColors.error.withValues(alpha: 0.2),
+                        quotaUsed: quotaUsed,
+                        quotaMax: quotaMax,
+                        quotaProgress: quotaProgress,
+                        quotaColor: quotaProgress > 0.9
+                            ? AppColors.error
+                            : AppColors.primary,
+                        isStrikethrough: !user.isActive,
+                        onTap: () {
+                          ref.read(selectedUserIdProvider.notifier).state =
+                              user.id;
+                        });
+                  },
+                );
+              },
             ),
-          ),
-          // Footer
-          const PaginationFooter(
-            currentPage: 1,
-            totalPages: 100,
-            startItem: 1,
-            endItem: 3,
-            totalItems: 1248,
           ),
         ],
       ),
@@ -144,23 +169,23 @@ class UsersListView extends StatelessWidget {
     required bool isSelected,
     required String email,
     required String id,
-    required String accessType,
-    required Color accessTypeColor,
-    required Color accessTypeBgColor,
-    required Color accessTypeBorderColor,
-    required IconData encryptionIcon,
-    required String encryptionText,
+    String? invitationCodeUsed,
+    required String status,
+    required Color statusColor,
+    required Color statusBgColor,
+    required Color statusBorderColor,
     required String quotaUsed,
     required String quotaMax,
     required double quotaProgress,
     required Color quotaColor,
     bool isGradient = false,
     bool isStrikethrough = false,
+    required VoidCallback onTap,
   }) {
     return Material(
       color: isSelected ? AppColors.surfaceContainerHigh : Colors.transparent,
       child: InkWell(
-        onTap: () {},
+        onTap: onTap,
         hoverColor: AppColors.surfaceContainerHigh,
         child: Container(
           decoration: BoxDecoration(
@@ -169,7 +194,8 @@ class UsersListView extends StatelessWidget {
           ),
           foregroundDecoration: isSelected
               ? const BoxDecoration(
-                  border: Border(left: BorderSide(color: AppColors.primary, width: 4)),
+                  border: Border(
+                      left: BorderSide(color: AppColors.primary, width: 4)),
                 )
               : null,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -189,7 +215,9 @@ class UsersListView extends StatelessWidget {
                           color: AppColors.onSurface,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
-                          decoration: isStrikethrough ? TextDecoration.lineThrough : null,
+                          decoration: isStrikethrough
+                              ? TextDecoration.lineThrough
+                              : null,
                           decorationColor: AppColors.error,
                         ),
                         overflow: TextOverflow.ellipsis,
@@ -206,17 +234,18 @@ class UsersListView extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Access Type
+                // Status
                 Expanded(
-                  flex: 3,
+                  flex: 2,
                   child: Align(
                     alignment: Alignment.centerLeft,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: accessTypeBgColor,
+                        color: statusBgColor,
                         borderRadius: BorderRadius.circular(4),
-                        border: Border.all(color: accessTypeBorderColor),
+                        border: Border.all(color: statusBorderColor),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -225,15 +254,15 @@ class UsersListView extends StatelessWidget {
                             width: 6,
                             height: 6,
                             decoration: BoxDecoration(
-                              color: accessTypeColor,
+                              color: statusColor,
                               shape: BoxShape.circle,
                             ),
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            accessType,
+                            status,
                             style: TextStyle(
-                              color: accessTypeColor,
+                              color: statusColor,
                               fontSize: 12,
                               fontWeight: FontWeight.w500,
                             ),
@@ -243,25 +272,16 @@ class UsersListView extends StatelessWidget {
                     ),
                   ),
                 ),
-                // Encryption
+                // Invitation Code
                 Expanded(
                   flex: 2,
-                  child: Row(
-                    children: [
-                      Icon(
-                        encryptionIcon,
-                        size: 16,
-                        color: encryptionText == 'None' ? AppColors.onSurfaceVariant : AppColors.primary,
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        encryptionText,
-                        style: TextStyle(
-                          color: encryptionText == 'None' ? AppColors.onSurfaceVariant : AppColors.onSurface,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ],
+                  child: Text(
+                    invitationCodeUsed ?? '-',
+                    style: const TextStyle(
+                      color: AppColors.onSurfaceVariant,
+                      fontSize: 14,
+                      fontFamily: 'monospace',
+                    ),
                   ),
                 ),
                 // Quota
@@ -273,8 +293,14 @@ class UsersListView extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(quotaUsed, style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 10)),
-                          Text(quotaMax, style: const TextStyle(color: AppColors.onSurfaceVariant, fontSize: 10)),
+                          Text(quotaUsed,
+                              style: const TextStyle(
+                                  color: AppColors.onSurfaceVariant,
+                                  fontSize: 10)),
+                          Text(quotaMax,
+                              style: const TextStyle(
+                                  color: AppColors.onSurfaceVariant,
+                                  fontSize: 10)),
                         ],
                       ),
                       const SizedBox(height: 4),
@@ -283,7 +309,10 @@ class UsersListView extends StatelessWidget {
                         decoration: BoxDecoration(
                           color: AppColors.surfaceContainerHighest,
                           borderRadius: BorderRadius.circular(4),
-                          border: isStrikethrough ? Border.all(color: AppColors.error.withOpacity(0.3)) : null,
+                          border: isStrikethrough
+                              ? Border.all(
+                                  color: AppColors.error.withValues(alpha: 0.3))
+                              : null,
                         ),
                         child: FractionallySizedBox(
                           alignment: Alignment.centerLeft,
@@ -291,7 +320,10 @@ class UsersListView extends StatelessWidget {
                           child: Container(
                             decoration: BoxDecoration(
                               gradient: isGradient
-                                  ? const LinearGradient(colors: [AppColors.secondary, AppColors.tertiary])
+                                  ? const LinearGradient(colors: [
+                                      AppColors.secondary,
+                                      AppColors.tertiary
+                                    ])
                                   : null,
                               color: isGradient ? null : quotaColor,
                               borderRadius: BorderRadius.circular(4),
