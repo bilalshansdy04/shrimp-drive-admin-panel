@@ -4,6 +4,7 @@ import 'dashboard_screen.dart';
 import 'invitation_codes_screen.dart';
 import 'users_management_screen.dart';
 import 'telegram_storage_screen.dart';
+import 'settings_screen.dart';
 
 import '../providers/api_provider.dart';
 import '../providers/dashboard_provider.dart';
@@ -109,6 +110,8 @@ class _MainLayoutState extends ConsumerState<MainLayout> {
         return const UsersManagementScreen();
       case 3:
         return const TelegramStorageScreen();
+      case 4:
+        return const SettingsScreen();
       default:
         return const Center(
             child: Text('Screen not implemented yet',

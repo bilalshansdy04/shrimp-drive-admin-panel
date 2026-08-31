@@ -91,6 +91,12 @@ class SideNavBar extends StatelessWidget {
                   icon: Icons.storage,
                   title: 'Telegram Storage',
                 ),
+                const SizedBox(height: 8),
+                _buildNavItem(
+                  index: 4,
+                  icon: Icons.settings,
+                  title: 'Settings',
+                ),
               ],
             ),
           ),

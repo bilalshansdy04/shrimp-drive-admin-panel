@@ -441,95 +441,9 @@ class _PreferencesSectionState extends ConsumerState<_PreferencesSection> {
               ),
             ],
           ),
-          const SizedBox(height: 24),
-          const Divider(color: AppColors.outline),
-          const SizedBox(height: 24),
-          const Text(
-            'INTERFACE THEME',
-            style: TextStyle(
-              color: AppColors.onSurfaceVariant,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 1.5,
-            ),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(child: _buildThemeCard(title: 'Dark Mode', icon: Icons.dark_mode, isSelected: true)),
-              const SizedBox(width: 16),
-              Expanded(child: _buildThemeCard(title: 'Light Mode', icon: Icons.light_mode, isSelected: false)),
-            ],
-          ),
-          const SizedBox(height: 24),
-          const Divider(color: AppColors.outline),
-          const SizedBox(height: 24),
-          const Text(
-            'DISPLAY LANGUAGE',
-            style: TextStyle(
-              color: AppColors.onSurfaceVariant,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 1.5,
-            ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: 300,
-            child: DropdownButtonFormField<String>(
-              initialValue: 'en',
-              icon: const Icon(Icons.arrow_drop_down, color: AppColors.onSurfaceVariant),
-              decoration: InputDecoration(
-                prefixIcon: const Icon(Icons.language, color: AppColors.onSurfaceVariant, size: 18),
-                filled: true,
-                fillColor: AppColors.surface,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
-                  borderSide: const BorderSide(color: AppColors.outline),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(4),
-                  borderSide: const BorderSide(color: AppColors.primaryContainer),
-                ),
-              ),
-              dropdownColor: AppColors.surfaceContainerHigh,
-              style: const TextStyle(color: AppColors.onSurface, fontSize: 14),
-              items: const [
-                DropdownMenuItem(value: 'en', child: Text('English')),
-                DropdownMenuItem(value: 'id', child: Text('Indonesia')),
-              ],
-              onChanged: (val) {},
-            ),
-          ),
         ],
       ),
       action: const SizedBox(), 
-    );
-  }
-
-  Widget _buildThemeCard({required String title, required IconData icon, required bool isSelected}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      decoration: BoxDecoration(
-        color: isSelected ? AppColors.surfaceContainer : AppColors.surface,
-        borderRadius: BorderRadius.circular(4),
-        border: Border.all(color: isSelected ? AppColors.primary : AppColors.outline),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, size: 32, color: isSelected ? AppColors.primary : AppColors.onSurfaceVariant),
-          const SizedBox(height: 12),
-          Text(
-            title,
-            style: const TextStyle(
-              color: AppColors.onSurface,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
