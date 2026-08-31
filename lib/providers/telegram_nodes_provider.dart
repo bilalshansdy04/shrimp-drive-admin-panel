@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/telegram_node.dart';
-import 'dashboard_provider.dart';
+import 'api_provider.dart';
 
 final telegramNodesProvider = AsyncNotifierProvider<TelegramNodesNotifier, List<TelegramNode>>(() {
   return TelegramNodesNotifier();
@@ -10,14 +10,16 @@ class TelegramNodesNotifier extends AsyncNotifier<List<TelegramNode>> {
   @override
   Future<List<TelegramNode>> build() async {
     final api = ref.watch(apiServiceProvider);
-    return await api.getTelegramNodes();
+    final response = await api.client.get('/telegram-nodes');
+    final data = response.data['data'] as List;
+    return data.map((json) => TelegramNode.fromJson(json)).toList();
   }
 
   Future<void> createNode(Map<String, dynamic> data) async {
     final api = ref.read(apiServiceProvider);
     state = const AsyncValue.loading();
     try {
-      await api.createTelegramNode(data);
+      await api.client.post('/telegram-nodes', data: data);
       ref.invalidateSelf();
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -28,7 +30,7 @@ class TelegramNodesNotifier extends AsyncNotifier<List<TelegramNode>> {
     final api = ref.read(apiServiceProvider);
     state = const AsyncValue.loading();
     try {
-      await api.updateTelegramNode(id, data);
+      await api.client.patch('/telegram-nodes/$id', data: data);
       ref.invalidateSelf();
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -39,7 +41,7 @@ class TelegramNodesNotifier extends AsyncNotifier<List<TelegramNode>> {
     final api = ref.read(apiServiceProvider);
     state = const AsyncValue.loading();
     try {
-      await api.deleteTelegramNode(id);
+      await api.client.delete('/telegram-nodes/$id');
       ref.invalidateSelf();
     } catch (e, st) {
       state = AsyncValue.error(e, st);

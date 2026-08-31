@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/user_model.dart';
-import 'dashboard_provider.dart'; // To get apiServiceProvider
+import 'api_provider.dart';
 
 final usersProvider = AsyncNotifierProvider<UsersNotifier, List<User>>(() {
   return UsersNotifier();
@@ -27,13 +27,16 @@ class UsersNotifier extends AsyncNotifier<List<User>> {
   @override
   Future<List<User>> build() async {
     final api = ref.watch(apiServiceProvider);
-    return await api.getUsers();
+    final response = await api.client.get('/users');
+    final data = response.data as List;
+    return data.map((json) => User.fromJson(json)).toList();
   }
 
   Future<void> toggleUserStatus(String id, bool currentStatus) async {
     final api = ref.read(apiServiceProvider);
     try {
-      final updatedUser = await api.updateUser(id, {'isActive': !currentStatus});
+      final response = await api.client.patch('/users/$id', data: {'isActive': !currentStatus});
+      final updatedUser = User.fromJson(response.data);
       state = state.whenData((users) {
         return users.map((u) => u.id == id ? updatedUser : u).toList();
       });
@@ -45,7 +48,8 @@ class UsersNotifier extends AsyncNotifier<List<User>> {
   Future<void> updateCustomStorage(String id, int additionalBytes) async {
     final api = ref.read(apiServiceProvider);
     try {
-      final updatedUser = await api.updateUser(id, {'customStorageBonus': additionalBytes});
+      final response = await api.client.patch('/users/$id', data: {'customStorageBonus': additionalBytes});
+      final updatedUser = User.fromJson(response.data);
       state = state.whenData((users) {
         return users.map((u) => u.id == id ? updatedUser : u).toList();
       });
@@ -57,7 +61,7 @@ class UsersNotifier extends AsyncNotifier<List<User>> {
   Future<void> resetPassword(String id, String newPassword) async {
     final api = ref.read(apiServiceProvider);
     try {
-      await api.updateUser(id, {'password': newPassword});
+      await api.client.patch('/users/$id', data: {'password': newPassword});
     } catch (e) {
       rethrow;
     }

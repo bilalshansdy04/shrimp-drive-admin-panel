@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/invitation_code.dart';
-import 'dashboard_provider.dart';
+import 'api_provider.dart';
 
 final invitationCodesProvider = AsyncNotifierProvider<InvitationCodesNotifier, List<InvitationCode>>(() {
   return InvitationCodesNotifier();
@@ -10,14 +10,16 @@ class InvitationCodesNotifier extends AsyncNotifier<List<InvitationCode>> {
   @override
   Future<List<InvitationCode>> build() async {
     final api = ref.watch(apiServiceProvider);
-    return await api.getInvitationCodes();
+    final response = await api.client.get('/invitation-codes');
+    final data = response.data as List;
+    return data.map((json) => InvitationCode.fromJson(json)).toList();
   }
 
   Future<void> createCode(Map<String, dynamic> data) async {
     final api = ref.read(apiServiceProvider);
     state = const AsyncValue.loading();
     try {
-      await api.createInvitationCode(data);
+      await api.client.post('/invitation-codes', data: data);
       // Refresh the list after creation
       ref.invalidateSelf();
     } catch (e, st) {
@@ -29,7 +31,7 @@ class InvitationCodesNotifier extends AsyncNotifier<List<InvitationCode>> {
     final api = ref.read(apiServiceProvider);
     state = const AsyncValue.loading();
     try {
-      await api.updateInvitationCode(code, data);
+      await api.client.patch('/invitation-codes/$code', data: data);
       ref.invalidateSelf();
     } catch (e, st) {
       state = AsyncValue.error(e, st);
@@ -40,7 +42,7 @@ class InvitationCodesNotifier extends AsyncNotifier<List<InvitationCode>> {
     final api = ref.read(apiServiceProvider);
     state = const AsyncValue.loading();
     try {
-      await api.deleteInvitationCode(code);
+      await api.client.delete('/invitation-codes/$code');
       ref.invalidateSelf();
     } catch (e, st) {
       state = AsyncValue.error(e, st);

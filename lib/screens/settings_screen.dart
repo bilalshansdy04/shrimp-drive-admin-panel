@@ -30,7 +30,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     });
     try {
       final api = ref.read(apiServiceProvider);
-      final settings = await api.getSettings();
+      final response = await api.client.get('/settings');
+      final settings = (response.data['data'] as Map<String, dynamic>)
+          .map((key, value) => MapEntry(key, value.toString()));
 
       if (settings.containsKey('default_base_storage')) {
         // convert bytes to GB for display
@@ -53,7 +55,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
       final gb = int.tryParse(_baseStorageController.text) ?? 8;
       final bytes = gb * 1024 * 1024 * 1024;
       
-      await api.updateSettings({
+      await api.client.patch('/settings', data: {
         'default_base_storage': bytes.toString(),
       });
       

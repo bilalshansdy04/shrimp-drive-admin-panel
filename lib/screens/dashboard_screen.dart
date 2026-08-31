@@ -87,79 +87,41 @@ class DashboardScreen extends ConsumerWidget {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            double cardWidth = (constraints.maxWidth - 40) / 3;
-                            if (cardWidth < 250) {
-                              cardWidth = constraints.maxWidth;
-                            }
-                            
-                            bool wrap = cardWidth == constraints.maxWidth;
-                            
-                            if (wrap) {
-                              return Column(
-                                children: [
-                                  MetricCard(
-                                    title: 'Total Active Users',
-                                    value: '${data['totalActiveUsers'] ?? 0}',
-                                    icon: Icons.group,
-                                    iconColor: AppColors.primary,
-                                  ),
-                                  const SizedBox(height: 20),
-                                  MetricCard(
-                                    title: 'Total Storage Used',
-                                    value: usedParts[0],
-                                    suffix: usedParts.length > 1 ? usedParts[1] : '',
-                                    icon: Icons.storage,
-                                    iconColor: AppColors.tertiary,
-                                    subtitle: '$formattedUsed / $formattedLimit',
-                                    progressValue: storageProgress,
-                                  ),
-                                  const SizedBox(height: 20),
-                                  MetricCard(
-                                    title: 'Active Invitations',
-                                    value: '${data['activeInvitationCodes'] ?? 0}',
-                                    icon: Icons.vpn_key,
-                                    iconColor: AppColors.secondary,
-                                  ),
-                                ],
-                              );
-                            }
-                            
-                            return Row(
-                              children: [
-                                Expanded(
-                                  child: MetricCard(
-                                    title: 'Total Active Users',
-                                    value: '${data['totalActiveUsers'] ?? 0}',
-                                    icon: Icons.group,
-                                    iconColor: AppColors.primary,
-                                  ),
-                                ),
-                                const SizedBox(width: 20),
-                                Expanded(
-                                  child: MetricCard(
-                                    title: 'Total Storage Used',
-                                    value: usedParts[0],
-                                    suffix: usedParts.length > 1 ? usedParts[1] : '',
-                                    icon: Icons.storage,
-                                    iconColor: AppColors.tertiary,
-                                    subtitle: '$formattedUsed / $formattedLimit',
-                                    progressValue: storageProgress,
-                                  ),
-                                ),
-                                const SizedBox(width: 20),
-                                Expanded(
-                                  child: MetricCard(
-                                    title: 'Active Invitations',
-                                    value: '${data['activeInvitationCodes'] ?? 0}',
-                                    icon: Icons.vpn_key,
-                                    iconColor: AppColors.secondary,
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
+                        Wrap(
+                          spacing: 20,
+                          runSpacing: 20,
+                          children: [
+                            SizedBox(
+                              width: 350,
+                              child: MetricCard(
+                                title: 'Total Active Users',
+                                value: '${data['totalActiveUsers'] ?? 0}',
+                                icon: Icons.group,
+                                iconColor: AppColors.primary,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 350,
+                              child: MetricCard(
+                                title: 'Total Storage Used',
+                                value: usedParts[0],
+                                suffix: usedParts.length > 1 ? usedParts[1] : '',
+                                icon: Icons.storage,
+                                iconColor: AppColors.tertiary,
+                                subtitle: '$formattedUsed / $formattedLimit',
+                                progressValue: storageProgress,
+                              ),
+                            ),
+                            SizedBox(
+                              width: 350,
+                              child: MetricCard(
+                                title: 'Active Invitations',
+                                value: '${data['activeInvitationCodes'] ?? 0}',
+                                icon: Icons.vpn_key,
+                                iconColor: AppColors.secondary,
+                              ),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 24),
                         RecentActivityTable(recentActivity: data['recentActivity']),
