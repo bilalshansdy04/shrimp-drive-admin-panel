@@ -10,7 +10,8 @@ class ApiService {
 
   ApiService()
       : _dio = Dio(BaseOptions(
-          baseUrl: 'http://localhost:5173/api/admin', // Ganti dengan port backend SvelteKit Anda jika berbeda
+          baseUrl: 'https://drive.shrimp.my.id/api/admin',
+          // baseUrl: 'http://localhost:5173/api/admin', // Ganti dengan port backend SvelteKit Anda jika berbeda
         )) {
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
@@ -67,6 +68,7 @@ class ApiService {
       throw Exception('Failed to load dashboard data: $e');
     }
   }
+
   Future<List<InvitationCode>> getInvitationCodes() async {
     try {
       final response = await _dio.get('/invitation-codes');
@@ -86,7 +88,8 @@ class ApiService {
     }
   }
 
-  Future<InvitationCode> updateInvitationCode(String code, Map<String, dynamic> data) async {
+  Future<InvitationCode> updateInvitationCode(
+      String code, Map<String, dynamic> data) async {
     try {
       final response = await _dio.patch('/invitation-codes/$code', data: data);
       return InvitationCode.fromJson(response.data);
@@ -173,7 +176,8 @@ class ApiService {
     }
   }
 
-  Future<void> backupDatabaseToTelegram({String? botToken, String? chatId, String? nodeId}) async {
+  Future<void> backupDatabaseToTelegram(
+      {String? botToken, String? chatId, String? nodeId}) async {
     try {
       final data = <String, dynamic>{};
       if (nodeId != null) {
@@ -184,11 +188,13 @@ class ApiService {
       }
       final response = await _dio.post('/backup-db', data: data);
       if (response.data['success'] != true) {
-        throw Exception(response.data['message'] ?? 'Failed to backup database');
+        throw Exception(
+            response.data['message'] ?? 'Failed to backup database');
       }
     } catch (e) {
       if (e is DioException) {
-        throw Exception(e.response?.data['message'] ?? 'Failed to backup database');
+        throw Exception(
+            e.response?.data['message'] ?? 'Failed to backup database');
       }
       throw Exception('Failed to backup database: $e');
     }
@@ -197,17 +203,20 @@ class ApiService {
   Future<void> restoreDatabase(dynamic fileBytesOrPath, String fileName) async {
     try {
       final formData = FormData.fromMap({
-        'file': fileBytesOrPath is String 
-          ? await MultipartFile.fromFile(fileBytesOrPath, filename: fileName)
-          : MultipartFile.fromBytes(fileBytesOrPath as List<int>, filename: fileName),
+        'file': fileBytesOrPath is String
+            ? await MultipartFile.fromFile(fileBytesOrPath, filename: fileName)
+            : MultipartFile.fromBytes(fileBytesOrPath as List<int>,
+                filename: fileName),
       });
       final response = await _dio.post('/restore-db', data: formData);
       if (response.data['success'] != true) {
-        throw Exception(response.data['message'] ?? 'Failed to restore database');
+        throw Exception(
+            response.data['message'] ?? 'Failed to restore database');
       }
     } catch (e) {
       if (e is DioException) {
-        throw Exception(e.response?.data['message'] ?? 'Failed to restore database');
+        throw Exception(
+            e.response?.data['message'] ?? 'Failed to restore database');
       }
       throw Exception('Failed to restore database: $e');
     }
