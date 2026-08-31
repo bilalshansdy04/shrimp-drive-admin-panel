@@ -366,8 +366,23 @@ class _GeneralSettingsSection extends StatelessWidget {
   }
 }
 
-class _PreferencesSection extends StatelessWidget {
+class _PreferencesSection extends ConsumerStatefulWidget {
   const _PreferencesSection();
+
+  @override
+  ConsumerState<_PreferencesSection> createState() => _PreferencesSectionState();
+}
+
+class _PreferencesSectionState extends ConsumerState<_PreferencesSection> {
+  final _apiUrlController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _apiUrlController.text = ref.read(apiServiceProvider).currentApiUrl;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -377,6 +392,58 @@ class _PreferencesSection extends StatelessWidget {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Text(
+            'API BASE URL',
+            style: TextStyle(
+              color: AppColors.onSurfaceVariant,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _apiUrlController,
+                  style: const TextStyle(color: AppColors.onSurface, fontSize: 14),
+                  decoration: InputDecoration(
+                    hintText: 'https://...',
+                    prefixIcon: const Icon(Icons.link, color: AppColors.onSurfaceVariant, size: 18),
+                    filled: true,
+                    fillColor: AppColors.surface,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: AppColors.outline),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(4),
+                      borderSide: const BorderSide(color: AppColors.primaryContainer),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              OutlinedButton(
+                onPressed: () async {
+                  await ref.read(apiServiceProvider).updateApiUrl(_apiUrlController.text.trim());
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('API URL updated. You may need to login again.')));
+                  }
+                },
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                ),
+                child: const Text('Apply'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          const Divider(color: AppColors.outline),
+          const SizedBox(height: 24),
           const Text(
             'INTERFACE THEME',
             style: TextStyle(

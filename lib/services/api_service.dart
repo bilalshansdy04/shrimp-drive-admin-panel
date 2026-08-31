@@ -11,7 +11,6 @@ class ApiService {
   ApiService()
       : _dio = Dio(BaseOptions(
           baseUrl: 'https://drive.shrimp.my.id/api/admin',
-          // baseUrl: 'http://localhost:5173/api/admin', // Ganti dengan port backend SvelteKit Anda jika berbeda
         )) {
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
@@ -30,7 +29,19 @@ class ApiService {
   Future<void> initToken() async {
     final prefs = await SharedPreferences.getInstance();
     _token = prefs.getString('admin_token');
+    final apiUrl = prefs.getString('api_url');
+    if (apiUrl != null && apiUrl.isNotEmpty) {
+      _dio.options.baseUrl = apiUrl;
+    }
   }
+
+  Future<void> updateApiUrl(String newUrl) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('api_url', newUrl);
+    _dio.options.baseUrl = newUrl;
+  }
+
+  String get currentApiUrl => _dio.options.baseUrl;
 
   bool get isAuthenticated => _token != null;
 

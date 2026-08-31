@@ -7,6 +7,7 @@ class StorageCard extends StatelessWidget {
   final String botToken;
   final String chatId;
   final bool isConnected;
+  final bool isGlobal;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
 
@@ -19,6 +20,7 @@ class StorageCard extends StatelessWidget {
     required this.botToken,
     required this.chatId,
     this.isConnected = true,
+    this.isGlobal = false,
     this.onEdit,
     this.onDelete,
     this.onTestConnection,
@@ -64,14 +66,36 @@ class StorageCard extends StatelessWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              title,
-                              style: const TextStyle(
-                                color: AppColors.onSurface,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                                letterSpacing: 1.5,
-                              ),
+                            Row(
+                              children: [
+                                Text(
+                                  title,
+                                  style: const TextStyle(
+                                    color: AppColors.onSurface,
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w500,
+                                    letterSpacing: 1.5,
+                                  ),
+                                ),
+                                if (isGlobal) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryContainer,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: const Text(
+                                      'GLOBAL',
+                                      style: TextStyle(
+                                        color: AppColors.primary,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
                             const SizedBox(height: 4),
                             Row(

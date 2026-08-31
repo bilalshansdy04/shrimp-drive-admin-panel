@@ -17,6 +17,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isLoading = false;
   String? _errorMsg;
 
+  @override
+  void initState() {
+    super.initState();
+  }
+
   Future<void> _handleLogin() async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text;
@@ -52,84 +57,141 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
+  Future<void> _showSettingsDialog() async {
+    final apiService = ref.read(apiServiceProvider);
+    final ctrl = TextEditingController(text: apiService.currentApiUrl);
+    
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.surfaceContainerHigh,
+          title: const Text('Server Configuration', style: TextStyle(color: AppColors.onSurface)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: ctrl,
+                style: const TextStyle(color: AppColors.onSurface),
+                decoration: const InputDecoration(
+                  labelText: 'API Base URL',
+                  hintText: 'https://drive.shrimp.my.id/api/admin',
+                  filled: true,
+                  fillColor: AppColors.surfaceContainer,
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                await apiService.updateApiUrl(ctrl.text.trim());
+                if (context.mounted) Navigator.pop(context);
+              },
+              child: const Text('Save'),
+            )
+          ],
+        );
+      }
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.surfaceContainerLowest,
-      body: Center(
-        child: Container(
-          width: 400,
-          padding: const EdgeInsets.all(32),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: AppColors.outline),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Shrimp Drive Admin',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.onSurface,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                ),
+      body: Stack(
+        children: [
+          Center(
+            child: Container(
+              width: 400,
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: AppColors.outline),
               ),
-              const SizedBox(height: 8),
-              const Text(
-                'Sign in to continue',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: AppColors.onSurfaceVariant,
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 32),
-              if (_errorMsg != null)
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.1),
-                    border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
-                    borderRadius: BorderRadius.circular(4),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Shrimp Drive Admin',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.onSurface,
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
-                  child: Text(
-                    _errorMsg!,
-                    style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+                  const SizedBox(height: 8),
+                  const Text(
+                    'Sign in to continue',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: AppColors.onSurfaceVariant,
+                      fontSize: 14,
+                    ),
                   ),
-                ),
-              _buildTextField(
-                label: 'USERNAME',
-                controller: _usernameController,
-                prefixIcon: Icons.person,
+                  const SizedBox(height: 32),
+                  if (_errorMsg != null)
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      margin: const EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.1),
+                        border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        _errorMsg!,
+                        style: const TextStyle(color: Colors.redAccent, fontSize: 13),
+                      ),
+                    ),
+                  _buildTextField(
+                    label: 'USERNAME',
+                    controller: _usernameController,
+                    prefixIcon: Icons.person,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    label: 'PASSWORD',
+                    controller: _passwordController,
+                    prefixIcon: Icons.lock,
+                    isPassword: true,
+                  ),
+                  const SizedBox(height: 32),
+                  FilledButton(
+                    onPressed: _isLoading ? null : _handleLogin,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.primaryContainer,
+                      foregroundColor: AppColors.surface,
+                      padding: const EdgeInsets.symmetric(vertical: 20),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                    ),
+                    child: _isLoading 
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Text('Login', style: TextStyle(fontWeight: FontWeight.bold)),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              _buildTextField(
-                label: 'PASSWORD',
-                controller: _passwordController,
-                prefixIcon: Icons.lock,
-                isPassword: true,
-              ),
-              const SizedBox(height: 32),
-              FilledButton(
-                onPressed: _isLoading ? null : _handleLogin,
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primaryContainer,
-                  foregroundColor: AppColors.surface,
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                ),
-                child: _isLoading 
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                  : const Text('Login', style: TextStyle(fontWeight: FontWeight.bold)),
-              ),
-            ],
+            ),
           ),
-        ),
+          Positioned(
+            top: 24,
+            right: 24,
+            child: IconButton(
+              icon: const Icon(Icons.settings),
+              color: AppColors.onSurfaceVariant,
+              tooltip: 'Server Settings',
+              onPressed: _showSettingsDialog,
+            ),
+          ),
+        ],
       ),
     );
   }

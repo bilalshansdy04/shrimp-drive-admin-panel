@@ -27,75 +27,90 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
     final nameCtrl = TextEditingController(text: node?.name ?? '');
     final botTokenCtrl = TextEditingController(text: node?.botToken ?? '');
     final chatIdCtrl = TextEditingController(text: node?.chatId ?? '');
+    bool isGlobal = node?.isGlobal ?? false;
 
     showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          backgroundColor: AppColors.surfaceContainerHigh,
-          title: Text(isEditing ? 'Edit Storage Node' : 'Add Storage Node', style: const TextStyle(color: AppColors.onSurface)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: nameCtrl,
-                style: const TextStyle(color: AppColors.onSurface),
-                decoration: const InputDecoration(
-                  labelText: 'Name (e.g. Family Storage)',
-                  filled: true,
-                  fillColor: AppColors.surfaceContainer,
-                ),
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              backgroundColor: AppColors.surfaceContainerHigh,
+              title: Text(isEditing ? 'Edit Storage Node' : 'Add Storage Node', style: const TextStyle(color: AppColors.onSurface)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameCtrl,
+                    style: const TextStyle(color: AppColors.onSurface),
+                    decoration: const InputDecoration(
+                      labelText: 'Name (e.g. Family Storage)',
+                      filled: true,
+                      fillColor: AppColors.surfaceContainer,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: botTokenCtrl,
+                    style: const TextStyle(color: AppColors.onSurface),
+                    decoration: const InputDecoration(
+                      labelText: 'Bot Token',
+                      filled: true,
+                      fillColor: AppColors.surfaceContainer,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: chatIdCtrl,
+                    style: const TextStyle(color: AppColors.onSurface),
+                    decoration: const InputDecoration(
+                      labelText: 'Chat ID',
+                      filled: true,
+                      fillColor: AppColors.surfaceContainer,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  SwitchListTile(
+                    title: const Text('Set as Global Storage', style: TextStyle(color: AppColors.onSurface)),
+                    subtitle: const Text('New users without invite codes will use this storage', style: TextStyle(color: AppColors.onSurfaceVariant, fontSize: 12)),
+                    value: isGlobal,
+                    activeColor: AppColors.primary,
+                    contentPadding: EdgeInsets.zero,
+                    onChanged: (val) => setState(() => isGlobal = val),
+                  ),
+                ],
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: botTokenCtrl,
-                style: const TextStyle(color: AppColors.onSurface),
-                decoration: const InputDecoration(
-                  labelText: 'Bot Token',
-                  filled: true,
-                  fillColor: AppColors.surfaceContainer,
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: chatIdCtrl,
-                style: const TextStyle(color: AppColors.onSurface),
-                decoration: const InputDecoration(
-                  labelText: 'Chat ID',
-                  filled: true,
-                  fillColor: AppColors.surfaceContainer,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                final data = {
-                  'name': nameCtrl.text,
-                  'botToken': botTokenCtrl.text,
-                  'chatId': chatIdCtrl.text,
-                };
-                if (isEditing) {
-                  await ref.read(telegramNodesProvider.notifier).updateNode(node.id, data);
-                } else {
-                  await ref.read(telegramNodesProvider.notifier).createNode(data);
-                }
-                if (context.mounted) {
-                  if (ref.read(telegramNodesProvider).hasError) {
-                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${ref.read(telegramNodesProvider).error}')));
-                  } else {
-                    Navigator.pop(context);
-                  }
-                }
-              },
-              child: Text(isEditing ? 'Save Changes' : 'Add Node'),
-            )
-          ],
+                FilledButton(
+                  onPressed: () async {
+                    final data = {
+                      'name': nameCtrl.text,
+                      'botToken': botTokenCtrl.text,
+                      'chatId': chatIdCtrl.text,
+                      'isGlobal': isGlobal,
+                    };
+                    if (isEditing) {
+                      await ref.read(telegramNodesProvider.notifier).updateNode(node!.id, data);
+                    } else {
+                      await ref.read(telegramNodesProvider.notifier).createNode(data);
+                    }
+                    if (context.mounted) {
+                      if (ref.read(telegramNodesProvider).hasError) {
+                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${ref.read(telegramNodesProvider).error}')));
+                      } else {
+                        Navigator.pop(context);
+                      }
+                    }
+                  },
+                  child: Text(isEditing ? 'Save Changes' : 'Add Node'),
+                )
+              ],
+            );
+          }
         );
       },
     );
@@ -443,6 +458,7 @@ class _TelegramStorageScreenState extends ConsumerState<TelegramStorageScreen> {
                         botToken: node.botToken,
                         chatId: node.chatId,
                         isConnected: node.isActive,
+                        isGlobal: node.isGlobal,
                         onEdit: () => _showNodeFormDialog(node),
                         onDelete: () => _confirmDelete(node),
                         onTestConnection: () async {
