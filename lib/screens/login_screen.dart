@@ -64,37 +64,76 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     await showDialog(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          backgroundColor: AppColors.surfaceContainerHigh,
-          title: const Text('Server Configuration', style: TextStyle(color: AppColors.onSurface)),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: ctrl,
-                style: const TextStyle(color: AppColors.onSurface),
-                decoration: const InputDecoration(
-                  labelText: 'API Base URL',
-                  hintText: 'https://drive.shrimp.my.id/api/admin',
-                  filled: true,
-                  fillColor: AppColors.surfaceContainer,
-                ),
+        bool isTesting = false;
+        bool? isSuccess;
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              backgroundColor: AppColors.surfaceContainerHigh,
+              title: const Text('Server Configuration', style: TextStyle(color: AppColors.onSurface)),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextField(
+                    controller: ctrl,
+                    style: const TextStyle(color: AppColors.onSurface),
+                    decoration: const InputDecoration(
+                      labelText: 'API Base URL',
+                      hintText: 'https://drive.shrimp.my.id/api/admin',
+                      filled: true,
+                      fillColor: AppColors.surfaceContainer,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ElevatedButton.icon(
+                    icon: isTesting 
+                      ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.wifi_find, size: 18),
+                    label: const Text('Test Connection'),
+                    onPressed: isTesting ? null : () async {
+                      setStateDialog(() {
+                        isTesting = true;
+                        isSuccess = null;
+                      });
+                      final ok = await apiService.testConnection(ctrl.text.trim());
+                      if (context.mounted) {
+                        setStateDialog(() {
+                          isTesting = false;
+                          isSuccess = ok;
+                        });
+                      }
+                    },
+                  ),
+                  if (isSuccess != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8),
+                      child: Text(
+                        isSuccess! ? '✅ Connection successful' : '❌ Connection failed',
+                        style: TextStyle(
+                          color: isSuccess! ? Colors.green : Colors.red,
+                          fontSize: 13,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                ],
               ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                await apiService.updateApiUrl(ctrl.text.trim());
-                if (context.mounted) Navigator.pop(context);
-              },
-              child: const Text('Save'),
-            )
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                FilledButton(
+                  onPressed: () async {
+                    await apiService.updateApiUrl(ctrl.text.trim());
+                    if (context.mounted) Navigator.pop(context);
+                  },
+                  child: const Text('Save'),
+                )
+              ],
+            );
+          }
         );
       }
     );

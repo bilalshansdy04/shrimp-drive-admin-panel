@@ -44,6 +44,16 @@ class ApiService {
 
   bool get isAuthenticated => _token != null;
 
+  Future<bool> testConnection(String url) async {
+    try {
+      final testDio = Dio(BaseOptions(baseUrl: url, connectTimeout: const Duration(seconds: 5)));
+      final response = await testDio.get('/ping');
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
   Future<void> login(String username, String password) async {
     try {
       final response = await _dio.post('/login', data: {

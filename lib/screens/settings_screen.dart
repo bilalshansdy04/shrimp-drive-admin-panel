@@ -377,6 +377,8 @@ class _PreferencesSection extends ConsumerStatefulWidget {
 
 class _PreferencesSectionState extends ConsumerState<_PreferencesSection> {
   final _apiUrlController = TextEditingController();
+  bool _isTesting = false;
+  bool? _isSuccess;
 
   @override
   void initState() {
@@ -394,14 +396,27 @@ class _PreferencesSectionState extends ConsumerState<_PreferencesSection> {
       content: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'API BASE URL',
-            style: TextStyle(
-              color: AppColors.onSurfaceVariant,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-              letterSpacing: 1.5,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text(
+                'API BASE URL',
+                style: TextStyle(
+                  color: AppColors.onSurfaceVariant,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  letterSpacing: 1.5,
+                ),
+              ),
+              if (_isSuccess != null)
+                Text(
+                  _isSuccess! ? '✅ Connection successful' : '❌ Connection failed',
+                  style: TextStyle(
+                    color: _isSuccess! ? Colors.green : Colors.red,
+                    fontSize: 12,
+                  ),
+                ),
+            ],
           ),
           const SizedBox(height: 8),
           Row(
@@ -428,14 +443,40 @@ class _PreferencesSectionState extends ConsumerState<_PreferencesSection> {
                 ),
               ),
               const SizedBox(width: 12),
-              OutlinedButton(
+              OutlinedButton.icon(
+                onPressed: _isTesting ? null : () async {
+                  setState(() {
+                    _isTesting = true;
+                    _isSuccess = null;
+                  });
+                  final ok = await ref.read(apiServiceProvider).testConnection(_apiUrlController.text.trim());
+                  if (mounted) {
+                    setState(() {
+                      _isTesting = false;
+                      _isSuccess = ok;
+                    });
+                  }
+                },
+                icon: _isTesting 
+                    ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                    : const Icon(Icons.wifi_find, size: 18),
+                label: const Text('Test'),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                ),
+              ),
+              const SizedBox(width: 12),
+              FilledButton(
                 onPressed: () async {
                   await ref.read(apiServiceProvider).updateApiUrl(_apiUrlController.text.trim());
                   if (context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('API URL updated. You may need to login again.')));
                   }
                 },
-                style: OutlinedButton.styleFrom(
+                style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.primaryContainer,
+                  foregroundColor: AppColors.surface,
                   padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                 ),
