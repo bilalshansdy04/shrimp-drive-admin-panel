@@ -31,10 +31,11 @@ class SideNavBar extends StatelessWidget {
             padding: const EdgeInsets.only(bottom: 32, left: 16),
             child: Row(
               children: [
-                const Icon(
-                  Icons.downloading,
-                  color: AppColors.primary,
-                  size: 28,
+                Image.asset(
+                  'assets/logo.webp',
+                  height: 32,
+                  width: 32,
+                  fit: BoxFit.contain,
                 ),
                 const SizedBox(width: 12),
                 Column(

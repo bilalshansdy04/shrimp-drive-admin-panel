@@ -119,6 +119,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Center(
+                    child: Image.asset(
+                      'assets/logo.webp',
+                      height: 48,
+                      width: 48,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
                   const Text(
                     'Shrimp Drive Admin',
                     textAlign: TextAlign.center,
